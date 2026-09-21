@@ -1,80 +1,889 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Name - CV</title>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: auto; padding: 20px; }
-        h1, h2 { color: #2c3e50; }
-        .section { margin-bottom: 20px; }
-        .download-btn { display: inline-block; padding: 10px 15px; background: #007bff; color: #fff; text-decoration: none; border-radius: 5px; }
-        .download-btn:hover { background: #0056b3; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Himanshu Sharma – Experimental high-energy nuclear physics (ALICE)</title>
+<meta name="description" content="Postdoctoral researcher at INFN Padova working on charm and charmonium production with the ALICE experiment at CERN. Research, publications, talks and service.">
+<meta name="theme-color" content="#0E1A26">
+<meta property="og:title" content="Himanshu Sharma – Experimental high-energy nuclear physics (ALICE)">
+<meta property="og:description" content="Charm and charmonium production in heavy-ion and pp collisions with ALICE at CERN. INFN Fellow, Padova.">
+<meta property="og:type" content="profile">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1A26'/%3E%3Cpath d='M9 21Q19 21 28 24' stroke='%23B9C8D8' stroke-width='1.6' fill='none'/%3E%3Cpath d='M9 21Q20 12 27 5' stroke='%23FF6E9F' stroke-width='2.2' fill='none'/%3E%3Ccircle cx='9' cy='21' r='2.6' fill='%23ECEFF1'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400..900&family=STIX+Two+Text:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Himanshu Sharma",
+  "honorificSuffix": "PhD",
+  "jobTitle": "Postdoctoral researcher, High Energy Nuclear Physics (ALICE)",
+  "affiliation": { "@type": "Organization", "name": "Istituto Nazionale di Fisica Nucleare (INFN), Section of Padova" },
+  "alumniOf": [
+    { "@type": "Organization", "name": "Institute of Nuclear Physics, Polish Academy of Sciences (IFJ PAN)" },
+    { "@type": "Organization", "name": "Indian Institute of Technology Madras" }
+  ],
+  "email": "mailto:himanshu.sharma@cern.ch",
+  "sameAs": [
+    "https://orcid.org/0000-0003-2753-4283",
+    "https://scholar.google.com/citations?user=sOjQO_YAAAAJ&hl=en",
+    "https://github.com/phymanshu",
+    "https://www.linkedin.com/in/shymanshu",
+    "https://www.kaggle.com/shymanshu",
+    "https://medium.com/@s.hymanshu"
+  ]
+}
+</script>
+
+<style>
+:root{
+  --deep:#0E1A26;
+  --paper:#ECEFF1;
+  --ink:#16222E;
+  --muted:#506070;
+  --rule:#C3CCD3;
+  --signal:#B01E56;
+  --signal-bright:#FF6E9F;
+  --track:#B9C8D8;
+  --on-deep:#EAF0F5;
+  --on-deep-muted:#9FB0C0;
+  --sans:"Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --serif:"STIX Two Text", "Iowan Old Style", "Palatino Linotype", Georgia, "Times New Roman", serif;
+  --gutter:clamp(1.25rem, 4vw, 3rem);
+  --date-col:7.5rem;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--serif);font-size:1.125rem;line-height:1.6;
+  font-kerning:normal;text-rendering:optimizeLegibility;
+}
+a{color:inherit;text-decoration:underline;text-decoration-color:rgba(22,34,46,.38);text-decoration-thickness:1px;text-underline-offset:.2em}
+a:hover{color:var(--signal);text-decoration-color:var(--signal)}
+:focus-visible{outline:2px solid var(--signal);outline-offset:3px;border-radius:2px}
+.hero :focus-visible,.site-footer :focus-visible{outline-color:var(--signal-bright)}
+p{margin:0}
+.nw{white-space:nowrap}
+sub,sup{font-size:.72em;line-height:0;position:relative;vertical-align:baseline}
+sup{top:-.42em}
+sub{top:.22em}
+/* stacked sub/superscript pair, as typeset in LaTeX (e.g. the charge and flavor labels of a baryon) */
+.ss{display:inline-block;position:relative;height:1em;min-width:.62em;margin-left:.06em;font-size:.72em;line-height:1;vertical-align:baseline}
+.ss sup,.ss sub{position:absolute;left:.04em;top:auto;font-size:1em}
+.ss sup{top:-.12em}
+.ss sub{top:.58em}
+
+/* ---------- hero ---------- */
+.hero{background:var(--deep);color:var(--on-deep)}
+.hero-inner{
+  max-width:76rem;margin:0 auto;padding:clamp(2.5rem,6vw,4.5rem) var(--gutter);
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.9fr);
+  gap:clamp(2rem,5vw,4.5rem);align-items:center;min-height:min(44rem,92svh);
+}
+.hero h1{margin:0 0 1.75rem;font:800 clamp(3.4rem,9.6vw,7.25rem)/.9 var(--sans);letter-spacing:-.04em}
+.hero h1 span{display:block}
+.role{font:500 clamp(1.15rem,2vw,1.4rem)/1.35 var(--sans);max-width:24rem;margin-bottom:.6rem}
+.affil{font:400 1rem/1.5 var(--sans);color:var(--on-deep-muted);max-width:26rem;margin-bottom:2rem}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:.9rem 1.6rem;font-family:var(--sans)}
+.btn{
+  display:inline-block;padding:.7rem 1.15rem;border-radius:.375rem;text-decoration:none;
+  background:var(--signal-bright);color:var(--deep);font-weight:650;font-size:.975rem;
+}
+.btn:hover{background:#FF8AB2;color:var(--deep)}
+.actions a:not(.btn){font-size:.975rem;color:var(--on-deep);text-decoration-color:rgba(234,240,245,.45)}
+.actions a:not(.btn):hover{color:var(--signal-bright);text-decoration-color:var(--signal-bright)}
+
+.event{margin:0}
+.event-svg{display:block;width:100%;height:auto;max-width:40rem;margin-inline:auto}
+.event figcaption{max-width:32rem;margin:1rem auto 0;font:400 .8125rem/1.5 var(--sans);color:var(--on-deep-muted)}
+.rings circle{fill:none;stroke:var(--track);stroke-opacity:.2;stroke-width:1}
+.rings circle.outer{stroke-opacity:.45;stroke-width:1.4}
+.sectors line{stroke:var(--track);stroke-opacity:.1;stroke-width:1}
+.trk,.parent,.dau,.halo{fill:none;stroke-linecap:round}
+.halo{stroke:var(--deep);stroke-width:5.5;opacity:.9}
+.trk{stroke:var(--track);stroke-width:1.1}
+.jet{stroke-width:1.35;stroke:#D6E2EE}
+.parent{stroke:var(--signal-bright);stroke-width:1.5;opacity:.85}
+.dau{stroke:var(--signal-bright);stroke-width:2.2}
+.pv{fill:var(--on-deep)}
+.sv{fill:var(--deep);stroke:var(--signal-bright);stroke-width:1.8}
+@media (prefers-reduced-motion:no-preference){
+  .trk,.parent,.dau,.halo{stroke-dasharray:1;stroke-dashoffset:1;animation:draw var(--dur,1.6s) cubic-bezier(.22,.7,.25,1) var(--delay,.2s) forwards}
+  .rings,.sectors{animation:fade .9s ease-out both}
+  .sv{transform-box:fill-box;transform-origin:center;animation:pop .45s cubic-bezier(.3,1.6,.5,1) 1.35s both}
+}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes fade{from{opacity:0}}
+@keyframes pop{from{transform:scale(0);opacity:0}}
+
+/* ---------- page frame ---------- */
+.page{
+  max-width:76rem;margin:0 auto;padding:0 var(--gutter);
+  display:grid;grid-template-columns:12.5rem minmax(0,1fr);gap:clamp(2rem,6vw,5rem);
+}
+.rail{position:sticky;top:0;align-self:start;padding:clamp(2.5rem,5vw,4rem) 0 2rem;font-family:var(--sans)}
+.rail ul{list-style:none;margin:0;padding:0}
+.rail nav a{
+  position:relative;display:block;padding:.32rem 0 .32rem 1rem;color:var(--muted);
+  font-size:.95rem;font-weight:500;text-decoration:none;
+}
+.rail nav a::before{content:"";position:absolute;left:0;top:.35rem;bottom:.35rem;width:2px;background:transparent;border-radius:1px}
+.rail nav a:hover{color:var(--ink)}
+.rail nav a[aria-current="true"]{color:var(--ink);font-weight:650}
+.rail nav a[aria-current="true"]::before{background:var(--signal)}
+.rail-links{margin-top:2.25rem;padding-top:1.25rem;border-top:1px solid var(--rule)}
+.rail-links a{display:block;padding:.2rem 0;font-size:.875rem;color:var(--muted);text-decoration:none}
+.rail-links a:hover{color:var(--signal);text-decoration:underline}
+
+main{padding:clamp(2.75rem,6vw,4.5rem) 0 3rem;max-width:49rem}
+section{scroll-margin-top:1.5rem;padding-bottom:clamp(3.5rem,7vw,5.5rem)}
+h2{margin:0 0 1.75rem;font:750 clamp(1.75rem,3.2vw,2.15rem)/1.1 var(--sans);letter-spacing:-.025em}
+h3{margin:0;font:650 1.2rem/1.3 var(--sans);letter-spacing:-.012em}
+h4{margin:1.5rem 0 .5rem;font:650 .95rem/1.3 var(--sans);letter-spacing:-.003em}
+.lede{font-size:1.32rem;line-height:1.5;max-width:37rem}
+.keywords{margin-top:1.5rem;max-width:37rem;color:var(--muted);font-size:1rem}
+.keywords strong{font:650 .9rem var(--sans);color:var(--ink);margin-right:.35rem}
+
+.subhead{
+  margin:2.5rem 0 1.25rem;padding-top:.9rem;border-top:1px solid var(--rule);
+  font:650 1rem/1.3 var(--sans);letter-spacing:-.005em;
+}
+.subhead:first-of-type{margin-top:0}
+.section-note{max-width:37rem;color:var(--muted);font-size:1rem;margin:-.5rem 0 1.5rem}
+
+/* rows and entries share a date column so left edges line up across sections */
+.entry,.row{display:grid;grid-template-columns:var(--date-col) minmax(0,38rem);column-gap:1.75rem}
+.entry{padding-bottom:3rem}
+.row{padding-bottom:1.35rem}
+.when{padding-top:.28rem;font:500 .9rem/1.4 var(--sans);color:var(--muted);font-variant-numeric:tabular-nums}
+.where{color:var(--muted);margin-top:.15rem}
+.note{margin-top:.6rem;font-size:.95rem;color:var(--muted)}
+.title{line-height:1.4}
+.venue{margin-top:.15rem;font:400 .9rem/1.45 var(--sans);color:var(--muted)}
+.role-line{font-weight:600}
+
+ul.tasks,ul.tasks ul{list-style:none;margin:0;padding:0}
+ul.tasks>li{position:relative;padding-left:1.15rem;margin-top:.75rem}
+ul.tasks>li::before{content:"";position:absolute;left:0;top:.72em;width:.36rem;height:.36rem;border-radius:50%;background:var(--signal)}
+ul.tasks ul{margin-top:.15rem}
+ul.tasks ul>li{position:relative;padding-left:1.15rem;margin-top:.55rem;font-size:1.03rem}
+ul.tasks ul>li::before{content:"";position:absolute;left:0;top:.8em;width:.5rem;height:1px;background:var(--muted)}
+ul.tasks em{font-style:normal;font-weight:600}
+
+dl.skills{margin:0}
+dl.skills>div{display:grid;grid-template-columns:var(--date-col) minmax(0,38rem);column-gap:1.75rem;padding-bottom:1rem}
+dl.skills dt{padding-top:.28rem;font:600 .9rem/1.4 var(--sans)}
+dl.skills dd{margin:0}
+
+/* ---------- footer ---------- */
+.site-footer{background:var(--deep);color:var(--on-deep);font-family:var(--sans)}
+.footer-inner{max-width:76rem;margin:0 auto;padding:clamp(2.5rem,5vw,3.5rem) var(--gutter);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:2rem 3rem}
+.site-footer h2{font:750 1.5rem/1.1 var(--sans);margin:0 0 .75rem;letter-spacing:-.02em}
+.site-footer p,.site-footer li{font-size:.975rem;color:var(--on-deep-muted)}
+.site-footer ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:.4rem 1.4rem}
+.site-footer a{color:var(--on-deep);text-decoration-color:rgba(234,240,245,.4)}
+.site-footer a:hover{color:var(--signal-bright);text-decoration-color:var(--signal-bright)}
+.updated{grid-column:1/-1;font-size:.85rem;padding-top:1.25rem;border-top:1px solid rgba(234,240,245,.14)}
+
+/* ---------- small screens ---------- */
+@media (max-width:56rem){
+  .hero-inner{grid-template-columns:1fr;min-height:0}
+  .event-svg{max-width:30rem}
+  .page{display:block}
+  .rail{
+    top:0;z-index:5;padding:0;margin-inline:calc(var(--gutter) * -1);
+    background:var(--paper);border-bottom:1px solid var(--rule);
+  }
+  .rail nav{overflow-x:auto;scrollbar-width:none;padding-inline:var(--gutter)}
+  .rail nav::-webkit-scrollbar{display:none}
+  .rail ul{display:flex;gap:1.35rem;white-space:nowrap}
+  .rail nav a{padding:.85rem 0 .7rem}
+  .rail nav a::before{left:0;right:0;top:auto;bottom:0;width:auto;height:2px}
+  .rail-links{display:none}
+  .footer-inner{grid-template-columns:1fr}
+  section{scroll-margin-top:3.5rem}
+}
+@media (max-width:40rem){
+  .entry,.row,dl.skills>div{grid-template-columns:1fr}
+  .when,dl.skills dt{padding:0 0 .15rem}
+  .when br{display:none}
+  .entry{padding-bottom:2.5rem}
+  .lede{font-size:1.2rem}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* ---------- print ---------- */
+@media print{
+  :root{--paper:#fff}
+  body{font-size:10.5pt;line-height:1.45}
+  .hero{background:none;color:#000}
+  .hero-inner{display:block;min-height:0;padding:0 0 1rem}
+  .hero h1{font-size:30pt;color:#000;margin-bottom:.5rem}
+  .hero h1 span{display:inline}
+  .role,.affil{color:#000;max-width:none;margin-bottom:.3rem}
+  .event,.rail,.actions,.site-footer .footer-inner>div:last-of-type{display:none}
+  .page{display:block;padding:0}
+  main{max-width:none;padding-top:1rem}
+  section{padding-bottom:1.4rem}
+  a{text-decoration:none}
+  h2,h3,h4,.subhead{break-after:avoid}
+  .entry{break-inside:auto;padding-bottom:1.2rem}
+  ul.tasks ul>li{break-inside:avoid}
+  .row{break-inside:avoid;padding-bottom:.6rem}
+  .site-footer{background:none;color:#000}
+  .site-footer p,.site-footer li,.site-footer a{color:#000}
+}
+.skip{position:absolute;left:1rem;top:-4rem;z-index:20;padding:.6rem 1rem;border-radius:.375rem;background:var(--signal-bright);color:var(--deep);font:650 .95rem var(--sans);text-decoration:none}
+.skip:focus{top:1rem}
+</style>
 </head>
+
 <body>
-
-    <h1>Your Name</h1>
-    <p><strong>Postdoc Researcher | High-Energy Nuclear Physics | Data Science</strong></p>
-
-    <p>Email: your.email@example.com | <a href="https://www.linkedin.com/in/yourprofile">LinkedIn</a> | <a href="https://github.com/phymanshu">GitHub</a></p>
-
-    <a class="download-btn" href="cv.pdf" download>Download CV (PDF)</a>
-
-    <div class="section">
-        <h2>About Me</h2>
-        <p>Postdoc researcher specializing in high-energy nuclear physics, data analysis, and machine learning. Experienced in working with large datasets, ROOT, and Python.</p>
+<a class="skip" href="#profile">Skip to content</a>
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <h1><span>Himanshu</span> <span>Sharma</span></h1>
+      <p class="role">Postdoctoral researcher in experimental high-energy nuclear physics</p>
+      <p class="affil">INFN Fellow and member of the ALICE Collaboration at CERN.<br>Istituto Nazionale di Fisica Nucleare (INFN), Section of Padova, Italy.</p>
+      <p class="actions">
+        <a class="btn" href="cv.pdf">Download CV (PDF)</a>
+        <a href="mailto:himanshu.sharma@cern.ch">himanshu.sharma@cern.ch</a>
+      </p>
     </div>
+    <figure class="event">
+<svg class="event-svg" viewBox="0 0 720 720" role="img" aria-labelledby="event-title" xmlns="http://www.w3.org/2000/svg">
+<title id="event-title">Schematic transverse view of a heavy-ion collision: many tracks leave the primary vertex, and three highlighted tracks come from a charm baryon that decayed a short distance away.</title>
+<g class="rings">
+<circle cx="360" cy="360" r="3.1"/>
+<circle cx="360" cy="360" r="4.2"/>
+<circle cx="360" cy="360" r="5.2"/>
+<circle cx="360" cy="360" r="26"/>
+<circle cx="360" cy="360" r="34"/>
+<circle cx="360" cy="360" r="48"/>
+<circle cx="360" cy="360" r="55"/>
+<circle cx="360" cy="360" r="116"/>
+<circle cx="360" cy="360" r="340" class="outer"/>
+</g>
+<g class="sectors">
+<line x1="474.2" y1="380.1" x2="694.8" y2="419.0"/>
+<line x1="460.5" y1="418.0" x2="654.4" y2="530.0"/>
+<line x1="434.6" y1="448.9" x2="578.5" y2="620.5"/>
+<line x1="399.7" y1="469.0" x2="476.3" y2="679.5"/>
+<line x1="360.0" y1="476.0" x2="360.0" y2="700.0"/>
+<line x1="320.3" y1="469.0" x2="243.7" y2="679.5"/>
+<line x1="285.4" y1="448.9" x2="141.5" y2="620.5"/>
+<line x1="259.5" y1="418.0" x2="65.6" y2="530.0"/>
+<line x1="245.8" y1="380.1" x2="25.2" y2="419.0"/>
+<line x1="245.8" y1="339.9" x2="25.2" y2="301.0"/>
+<line x1="259.5" y1="302.0" x2="65.6" y2="190.0"/>
+<line x1="285.4" y1="271.1" x2="141.5" y2="99.5"/>
+<line x1="320.3" y1="251.0" x2="243.7" y2="40.5"/>
+<line x1="360.0" y1="244.0" x2="360.0" y2="20.0"/>
+<line x1="399.7" y1="251.0" x2="476.3" y2="40.5"/>
+<line x1="434.6" y1="271.1" x2="578.5" y2="99.5"/>
+<line x1="460.5" y1="302.0" x2="654.4" y2="190.0"/>
+<line x1="474.2" y1="339.9" x2="694.8" y2="301.0"/>
+</g>
+<g fill="none">
+<path class="trk" pathLength="1" d="M367.0 355.0A766.3 766.3 0 0 1 471.2 681.9" style="--dur:1.71s;--delay:0.29s;opacity:0.37;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A983.5 983.5 0 0 0 399.4 21.8" style="--dur:1.68s;--delay:0.30s;opacity:0.38;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A445.9 445.9 0 0 1 675.6 487.8" style="--dur:1.77s;--delay:0.17s;opacity:0.57;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A355.8 355.8 0 0 0 562.1 633.9" style="--dur:1.79s;--delay:0.28s;opacity:0.64;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A472.5 472.5 0 0 1 523.7 61.3" style="--dur:1.77s;--delay:0.16s;opacity:0.41;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A291.5 291.5 0 0 1 86.6 157.7" style="--dur:1.80s;--delay:0.16s;opacity:0.55;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A985.3 985.3 0 0 0 677.8 480.9" style="--dur:1.68s;--delay:0.29s;opacity:0.49;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A536.3 536.3 0 0 0 279.7 690.6" style="--dur:1.76s;--delay:0.35s;opacity:0.46;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A270.9 270.9 0 0 0 290.3 27.2" style="--dur:1.80s;--delay:0.21s;opacity:0.63;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A888.0 888.0 0 0 0 313.3 23.0" style="--dur:1.69s;--delay:0.19s;opacity:0.46;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A337.5 337.5 0 0 0 355.0 20.0" style="--dur:1.79s;--delay:0.42s;opacity:0.44;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A507.8 507.8 0 0 1 59.8 521.2" style="--dur:1.76s;--delay:0.25s;opacity:0.46;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A1050.1 1050.1 0 0 0 389.9 699.2" style="--dur:1.66s;--delay:0.37s;opacity:0.64;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A542.4 542.4 0 0 0 40.0 475.1" style="--dur:1.75s;--delay:0.32s;opacity:0.41;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A289.9 289.9 0 0 0 613.2 132.6" style="--dur:1.80s;--delay:0.34s;opacity:0.58;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A886.2 886.2 0 0 1 138.3 618.1" style="--dur:1.69s;--delay:0.22s;opacity:0.36;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A489.5 489.5 0 0 0 617.1 583.4" style="--dur:1.76s;--delay:0.36s;opacity:0.53;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A2284.7 2284.7 0 0 0 91.3 569.3" style="--dur:1.45s;--delay:0.41s;opacity:0.47;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A364.5 364.5 0 0 0 266.9 687.5" style="--dur:1.79s;--delay:0.20s;opacity:0.32;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A909.8 909.8 0 0 1 535.4 68.3" style="--dur:1.69s;--delay:0.17s;opacity:0.40;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A722.7 722.7 0 0 0 501.8 50.4" style="--dur:1.72s;--delay:0.28s;opacity:0.36;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A422.8 422.8 0 0 0 700.0 365.5" style="--dur:1.78s;--delay:0.45s;opacity:0.55;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A367.5 367.5 0 0 1 43.9 234.8" style="--dur:1.79s;--delay:0.16s;opacity:0.37;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A954.6 954.6 0 0 1 588.2 107.5" style="--dur:1.68s;--delay:0.33s;opacity:0.44;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A1093.8 1093.8 0 0 1 97.5 142.7" style="--dur:1.66s;--delay:0.19s;opacity:0.50;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A814.1 814.1 0 0 1 526.0 657.5" style="--dur:1.71s;--delay:0.36s;opacity:0.62;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A644.0 644.0 0 0 0 698.1 317.1" style="--dur:1.74s;--delay:0.41s;opacity:0.50;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A471.6 471.6 0 0 0 477.0 679.7" style="--dur:1.77s;--delay:0.19s;opacity:0.33;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A247.4 247.4 0 0 1 439.7 690.6" style="--dur:1.81s;--delay:0.39s;opacity:0.32;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A385.5 385.5 0 0 1 488.4 674.8" style="--dur:1.78s;--delay:0.31s;opacity:0.41;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A348.1 348.1 0 0 0 72.0 541.4" style="--dur:1.79s;--delay:0.20s;opacity:0.59;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A853.8 853.8 0 0 0 531.9 653.4" style="--dur:1.70s;--delay:0.33s;opacity:0.47;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A262.2 262.2 0 0 0 138.1 102.2" style="--dur:1.80s;--delay:0.27s;opacity:0.59;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A615.1 615.1 0 0 0 158.2 634.1" style="--dur:1.74s;--delay:0.23s;opacity:0.54;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A255.1 255.1 0 0 1 48.5 496.8" style="--dur:1.80s;--delay:0.20s;opacity:0.55;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A1007.1 1007.1 0 0 1 698.9 390.6" style="--dur:1.67s;--delay:0.43s;opacity:0.33;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A557.5 557.5 0 0 1 167.8 78.7" style="--dur:1.75s;--delay:0.44s;opacity:0.41;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A574.0 574.0 0 0 0 169.9 77.9" style="--dur:1.75s;--delay:0.17s;opacity:0.58;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A434.7 434.7 0 0 1 691.4 437.7" style="--dur:1.77s;--delay:0.35s;opacity:0.44;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A713.9 713.9 0 0 1 642.1 168.9" style="--dur:1.72s;--delay:0.30s;opacity:0.62;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A790.2 790.2 0 0 1 291.6 26.0" style="--dur:1.71s;--delay:0.31s;opacity:0.43;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A351.6 351.6 0 0 0 220.6 670.5" style="--dur:1.79s;--delay:0.35s;opacity:0.31;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A639.3 639.3 0 0 1 220.3 670.0" style="--dur:1.74s;--delay:0.37s;opacity:0.46;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A456.4 456.4 0 0 1 262.9 686.1" style="--dur:1.77s;--delay:0.22s;opacity:0.61;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A253.0 253.0 0 0 0 29.4 280.4" style="--dur:1.81s;--delay:0.30s;opacity:0.54;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A682.6 682.6 0 0 1 506.7 52.2" style="--dur:1.73s;--delay:0.22s;opacity:0.61;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A668.1 668.1 0 0 0 172.9 644.7" style="--dur:1.73s;--delay:0.20s;opacity:0.37;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A807.0 807.0 0 0 0 550.0 76.9" style="--dur:1.71s;--delay:0.32s;opacity:0.33;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A1538.6 1538.6 0 0 1 217.7 669.1" style="--dur:1.58s;--delay:0.44s;opacity:0.64;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A493.2 493.2 0 0 1 424.8 694.1" style="--dur:1.76s;--delay:0.26s;opacity:0.50;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A274.5 274.5 0 0 0 658.1 524.1" style="--dur:1.80s;--delay:0.25s;opacity:0.39;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A311.2 311.2 0 0 0 377.5 20.4" style="--dur:1.80s;--delay:0.22s;opacity:0.53;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A313.2 313.2 0 0 1 480.5 42.0" style="--dur:1.79s;--delay:0.29s;opacity:0.45;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A385.1 385.1 0 0 0 33.7 262.8" style="--dur:1.78s;--delay:0.35s;opacity:0.51;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A1911.2 1911.2 0 0 0 657.9 526.7" style="--dur:1.51s;--delay:0.16s;opacity:0.58;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A244.4 244.4 0 0 0 66.2 188.5" style="--dur:1.81s;--delay:0.27s;opacity:0.45;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A2361.6 2361.6 0 0 0 43.0 488.4" style="--dur:1.43s;--delay:0.18s;opacity:0.41;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A1255.1 1255.1 0 0 1 21.8 406.8" style="--dur:1.63s;--delay:0.20s;opacity:0.49;"/>
+<path class="trk" pathLength="1" d="M367.0 355.0A1068.8 1068.8 0 0 1 29.4 445.5" style="--dur:1.66s;--delay:0.21s;opacity:0.44;"/>
+<path class="trk jet" pathLength="1" d="M367.0 355.0A2874.1 2874.1 0 0 1 658.2 196.0" style="--dur:1.34s;--delay:0.42s;"/>
+<path class="trk jet" pathLength="1" d="M367.0 355.0A1923.4 1923.4 0 0 0 641.6 164.5" style="--dur:1.51s;--delay:0.28s;"/>
+<path class="trk jet" pathLength="1" d="M367.0 355.0A1025.4 1025.4 0 0 1 691.8 284.7" style="--dur:1.67s;--delay:0.39s;"/>
+<path class="trk jet" pathLength="1" d="M367.0 355.0A2045.1 2045.1 0 0 1 671.0 216.7" style="--dur:1.49s;--delay:0.35s;"/>
+<path class="trk jet" pathLength="1" d="M367.0 355.0A1247.1 1247.1 0 0 0 640.0 166.1" style="--dur:1.63s;--delay:0.42s;"/>
+<path class="trk jet" pathLength="1" d="M367.0 355.0A904.9 904.9 0 0 0 632.4 155.6" style="--dur:1.69s;--delay:0.35s;"/>
+<path class="trk jet" pathLength="1" d="M367.0 355.0A864.1 864.1 0 0 1 683.4 253.6" style="--dur:1.70s;--delay:0.23s;"/>
+<path class="trk jet" pathLength="1" d="M367.0 355.0A1463.3 1463.3 0 0 0 644.6 171.3" style="--dur:1.59s;--delay:0.18s;"/>
+<path class="trk jet" pathLength="1" d="M367.0 355.0A2306.2 2306.2 0 0 1 656.2 192.3" style="--dur:1.44s;--delay:0.17s;"/>
+<path class="trk jet" pathLength="1" d="M367.0 355.0A1121.2 1121.2 0 0 0 627.2 149.1" style="--dur:1.65s;--delay:0.37s;"/>
+<path class="trk jet" pathLength="1" d="M367.0 355.0A843.0 843.0 0 0 1 674.5 230.8" style="--dur:1.70s;--delay:0.30s;"/>
+</g>
+<path class="halo" pathLength="1" d="M367.0 355.0L443.0 319.2" style="--dur:.5s;--delay:.95s"/>
+<path class="parent" pathLength="1" d="M367.0 355.0L443.0 319.2" style="--dur:.5s;--delay:.95s"/>
+<path class="halo" pathLength="1" d="M443.0 319.2A1722.7 1722.7 0 0 1 633.4 156.5" style="--dur:1.0s;--delay:1.45s"/>
+<path class="dau" pathLength="1" d="M443.0 319.2A1722.7 1722.7 0 0 1 633.4 156.5" style="--dur:1.0s;--delay:1.45s"/>
+<path class="halo" pathLength="1" d="M443.0 319.2A952.0 952.0 0 0 0 655.3 188.7" style="--dur:1.0s;--delay:1.53s"/>
+<path class="dau" pathLength="1" d="M443.0 319.2A952.0 952.0 0 0 0 655.3 188.7" style="--dur:1.0s;--delay:1.53s"/>
+<path class="halo" pathLength="1" d="M443.0 319.2A634.7 634.7 0 0 1 700.1 373.6" style="--dur:1.0s;--delay:1.61s"/>
+<path class="dau" pathLength="1" d="M443.0 319.2A634.7 634.7 0 0 1 700.1 373.6" style="--dur:1.0s;--delay:1.61s"/>
+<circle class="sv" cx="443.0" cy="319.2" r="5.2"/>
+<circle class="pv" cx="367" cy="355" r="3.4"/>
+</svg>
+      <figcaption>Schematic transverse view of a collision, not to scale. The highlighted tracks come from a charm baryon that decayed a fraction of a millimeter from the primary vertex.</figcaption>
+    </figure>
+  </div>
+</header>
 
-    <div class="section">
-        <h2>Education</h2>
-        <ul>
-            <li>Ph.D. in Physics, [Your University], [Year]</li>
-            <li>M.Sc. in Physics, [Your University], [Year]</li>
-        </ul>
+<div class="page">
+  <aside class="rail">
+    <nav aria-label="Sections" data-nav>
+      <ul>
+        <li><a href="#profile">Profile</a></li>
+        <li><a href="#research">Research</a></li>
+        <li><a href="#publications">Publications</a></li>
+        <li><a href="#talks">Talks</a></li>
+        <li><a href="#alice">ALICE roles</a></li>
+        <li><a href="#funding">Funding</a></li>
+        <li><a href="#teaching">Teaching</a></li>
+        <li><a href="#writing">Writing</a></li>
+        <li><a href="#skills">Skills</a></li>
+      </ul>
+    </nav>
+    <div class="rail-links">
+      <a href="https://orcid.org/0000-0003-2753-4283">ORCID</a>
+      <a href="https://scholar.google.com/citations?user=sOjQO_YAAAAJ&amp;hl=en">Google Scholar</a>
+      <a href="https://inspirehep.net/literature?sort=mostrecent&amp;size=25&amp;page=1&amp;q=Himanshu%20SHARMA%20ALICE&amp;doc_type=published">INSPIRE-HEP</a>
+      <a href="https://github.com/phymanshu">GitHub</a>
+      <a href="https://www.linkedin.com/in/shymanshu">LinkedIn</a>
+      <a href="https://www.kaggle.com/shymanshu">Kaggle</a>
+      <a href="https://medium.com/@s.hymanshu">Medium</a>
     </div>
+  </aside>
 
-    <div class="section">
-        <h2>Research & Experience</h2>
-        <ul>
-            <li><strong>Postdoctoral Researcher</strong> – INFN Padova, Italy (Present)
-                <ul>
-                    <li>Analyzing charm production in nuclear collisions.</li>
-                    <li>Developing machine learning models for data-driven research.</li>
-                </ul>
+  <main>
+
+    <!-- PROFILE -->
+    <section id="profile" aria-labelledby="h-profile">
+      <h2 id="h-profile">Profile</h2>
+      <p class="lede">Postdoctoral researcher in experimental high-energy nuclear physics (ALICE Collaboration at CERN) specializing in charmonium production, heavy-flavor hadronization, and machine learning applications. Proven track record in leading complex data analyses, calibrating detector simulations, and serving on international collaboration review committees. Recognized for providing high-precision measurements that test and constrain QCD models, supported by an active portfolio in university-level lecturing, student mentorship, and science communication.</p>
+      <p class="keywords"><strong>Keywords</strong>Strong interactions, quantum chromodynamics (QCD), quark–gluon plasma (QGP), high-energy nuclear collisions, charmonium and heavy-flavor production, jet substructure, machine learning applications.</p>
+    </section>
+
+    <!-- RESEARCH & EDUCATION -->
+    <section id="research" aria-labelledby="h-research">
+      <h2 id="h-research">Research and education</h2>
+
+      <article class="entry">
+        <p class="when">Feb 2023 –<br> present</p>
+        <div class="what">
+          <h3>Postdoctoral researcher, ALICE experiment</h3>
+          <p class="where"><a href="https://www.pd.infn.it/eng/">Istituto Nazionale di Fisica Nucleare (INFN)</a>, Padova, Italy</p>
+          <p class="note">The contract began on 6 February 2023, during the final thesis-writing phase of the PhD. The doctoral degree was awarded on 4 December 2023.</p>
+
+          <h4>Physics measurements</h4>
+          <ul class="tasks">
+            <li>Charm-strange baryon (Ξ<span class="ss"><sup>+</sup><sub>c</sub></span>) production in pp and Pb–Pb collisions in LHC Run 3 (2022–26), using machine learning techniques.
+              <ul>
+                <li><em>Machine learning-based signal selection.</em> Extracted the invariant-mass signals of <span class="nw">Ξ<span class="ss"><sup>+</sup><sub>c</sub></span>&nbsp;→&nbsp;pK<sup>−</sup>π<sup>+</sup></span> and <span class="nw">Λ<span class="ss"><sup>+</sup><sub>c</sub></span>&nbsp;→&nbsp;pK<sup>−</sup>π<sup>+</sup></span> with Boosted Decision Trees (BDTs) to optimize signal-to-background separation, particularly in the low-transverse-momentum region, in pp collisions.</li>
+                <li><em>Physics analysis and dissemination.</em> Measured the charm baryon-to-baryon ratio <span class="nw">Ξ<span class="ss"><sup>+</sup><sub>c</sub></span>/Λ<span class="ss"><sup>+</sup><sub>c</sub></span></span> in pp collisions at √<i>s</i>&nbsp;=&nbsp;13.6&nbsp;TeV, compared the results with theoretical QCD models, and presented these findings for the first time in two talks (<a href="https://indico.global/event/13943/contributions/143644/">Talk 1</a>, <a href="https://indico.global/event/13943/contributions/143558/">Talk 2</a>) at the SQM 2026 conference.</li>
+              </ul>
             </li>
-            <li><strong>Ph.D. Researcher</strong> – [Your Institute]
-                <ul>
-                    <li>Worked on [Your Research Topic].</li>
-                    <li>Published [X] papers in reputed journals.</li>
-                </ul>
+          </ul>
+
+          <h4>Software development</h4>
+          <ul class="tasks">
+            <li>Software tools for data-driven calibration of Monte Carlo simulations.
+              <ul>
+                <li>Main developer of the <a href="https://github.com/AliceO2Group/O2Physics/pull/4425">software implementation</a> of a method that modifies the spatial and momentum resolutions of reconstructed tracks in the simulation to reproduce those estimated in data with data-driven techniques. The approach has since been adopted in multiple ALICE heavy-flavor analyses to help reduce systematic uncertainties. This is crucial for the measurements of all hadrons decaying far from the primary vertex, especially hadrons containing charm or beauty quarks.</li>
+              </ul>
             </li>
-        </ul>
-    </div>
+          </ul>
+        </div>
+      </article>
 
-    <div class="section">
-        <h2>Technical Skills</h2>
-        <ul>
-            <li>Python, ROOT, Machine Learning, Data Analysis</li>
-            <li>Git, LaTeX, Linux</li>
-            <li>Monte Carlo Simulations, Statistical Modeling</li>
-        </ul>
-    </div>
+      <article class="entry">
+        <p class="when">Oct 2018 –<br> Dec 2023</p>
+        <div class="what">
+          <h3>Doctoral researcher, ALICE experiment</h3>
+          <p class="where"><a href="https://www.ifj.edu.pl/">Institute of Nuclear Physics, Polish Academy of Sciences (IFJ PAN)</a>, Kraków, Poland</p>
+          <p class="note">PhD in high-energy nuclear physics. Advisor: Dr. hab. Jacek Otwinowski. Thesis defended on 24 November 2023, degree awarded on 4 December 2023.</p>
+          <p class="note" style="margin-top:.35rem"><a href="https://cds.cern.ch/record/2891241?ln=en">Thesis</a>: “Prompt and non-prompt J/ψ production in Pb–Pb collisions at √<i>s</i><sub>NN</sub>&nbsp;=&nbsp;5.02&nbsp;TeV with ALICE experiment”</p>
 
-    <div class="section">
-        <h2>Publications</h2>
-        <ul>
-            <li><a href="https://arxiv.org/your-paper-link">Title of Paper 1</a> - Journal Name, Year</li>
-            <li><a href="https://arxiv.org/your-paper-link">Title of Paper 2</a> - Journal Name, Year</li>
-        </ul>
-    </div>
+          <h4>Physics measurements</h4>
+          <ul class="tasks">
+            <li>Prompt and non-prompt J/ψ production in Pb–Pb collisions at √<i>s</i><sub>NN</sub>&nbsp;=&nbsp;5.02&nbsp;TeV in the ALICE experiment.
+              <ul>
+                <li>Extraction of non-prompt J/ψ fractions using two-dimensional simultaneous likelihood fits on the invariant mass and decay length of J/ψ candidates, reconstructed via the <span class="nw">J/ψ&nbsp;→&nbsp;e<sup>+</sup>e<sup>−</sup></span> decay channel at midrapidity using datasets collected during LHC Run 2.</li>
+                <li>Determination of nuclear modification factors and production yields of prompt and non-prompt J/ψ as a function of transverse momentum and collision centrality.</li>
+              </ul>
+            </li>
+          </ul>
 
-    <div class="section">
-        <h2>Contact</h2>
-        <p>Email: your.email@example.com</p>
-        <p>LinkedIn: <a href="https://www.linkedin.com/in/yourprofile">linkedin.com/in/yourprofile</a></p>
-        <p>GitHub: <a href="https://github.com/phymanshu">github.com/phymanshu</a></p>
-    </div>
+          <h4>Detector development</h4>
+          <ul class="tasks">
+            <li>Contribution to the development of the ALICE Fast Interaction Trigger (FIT) detector for LHC Run 3 during Long Shutdown 2 (LS2).
+              <ul>
+                <li>Tested the signal and high-voltage setup for all channels of the FIT-FT0 detector. Also contributed to detector commissioning, taking part in cosmic-ray data taking and data analysis.</li>
+                <li>Tested the performance of FIT-FV0 detector channels with laser signals after commissioning at the LHC, CERN (<a href="https://indico.cern.ch/event/1052846/#79-update-from-cern">Link 1</a>, <a href="https://indico.cern.ch/event/1062402/#79-update-from-cern">Link 2</a>).</li>
+                <li>FIT software: developed time-calibration tasks in the Quality Control framework for the FV0 detector (<a href="https://github.com/AliceO2Group/QualityControl/pull/871/">PR</a>), and tested time calibration for FV0 channels with laser and simulation data (<a href="https://indico.cern.ch/event/1089040/#22-calibration">Link</a>).</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </article>
 
+      <article class="entry">
+        <p class="when">Jul –<br> Oct 2018</p>
+        <div class="what">
+          <h3>Research assistant</h3>
+          <p class="where"><a href="https://www.iiti.ac.in/">Indian Institute of Technology (IIT) Indore</a>, India</p>
+          <ul class="tasks">
+            <li>Investigated freeze-out temperatures and radial flow in proton–proton collisions at √<i>s</i>&nbsp;=&nbsp;7&nbsp;TeV by analyzing the transverse-momentum spectra of produced charged and strange hadrons.</li>
+            <li>Acquired expertise in thermodynamic modeling (Blast-Wave models and Tsallis statistics) to extract key thermodynamic parameters and describe the collective expansion of the system.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="entry">
+        <p class="when">Aug 2016 –<br> Jul 2018</p>
+        <div class="what">
+          <h3>M.Sc. Physics</h3>
+          <p class="where"><a href="https://www.iitm.ac.in/">Indian Institute of Technology (IIT) Madras</a>, India</p>
+          <p class="note">Thesis: “Elliptic flow of charged hadrons in Pb–Pb collisions at √<i>s</i><sub>NN</sub>&nbsp;=&nbsp;2.76&nbsp;TeV using the AMPT”. Advisor: Dr. Prabhat Pujahari.</p>
+          <ul class="tasks">
+            <li>Studied the collective behavior of the hot, dense medium produced in Pb–Pb collisions at √<i>s</i><sub>NN</sub>&nbsp;=&nbsp;2.76&nbsp;TeV by analyzing azimuthal anisotropy observables using the <a href="https://journals.aps.org/prc/abstract/10.1103/PhysRevC.61.067901">AMPT</a> event generator.</li>
+            <li>Acquired expertise in heavy-ion event generators, relativistic kinematics, and heavy-ion phenomenology, with a focus on characterizing elliptic flow as a smoking-gun signature of QGP formation.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="entry" style="padding-bottom:0">
+        <p class="when">Aug 2012 –<br> Aug 2015</p>
+        <div class="what">
+          <h3>B.Sc.</h3>
+          <p class="where">University of Kota, India</p>
+        </div>
+      </article>
+    </section>
+
+    <!-- PUBLICATIONS -->
+    <section id="publications" aria-labelledby="h-pub">
+      <h2 id="h-pub">Publications</h2>
+      <p class="section-note">As a member of the ALICE Collaboration I am a co-author of more than 250 publications. The complete list is on my <a href="https://inspirehep.net/literature?sort=mostrecent&amp;size=25&amp;page=1&amp;q=Himanshu%20SHARMA%20ALICE&amp;doc_type=published">INSPIRE-HEP profile</a>.</p>
+
+      <h3 class="subhead">Journal articles</h3>
+      <div class="row">
+        <p class="when">2024</p>
+        <div class="what">
+          <p class="title"><a href="https://link.springer.com/article/10.1007/JHEP02(2024)066">Prompt and non-prompt J/ψ production at midrapidity in Pb–Pb collisions at √<i>s</i><sub>NN</sub>&nbsp;=&nbsp;5.02&nbsp;TeV</a></p>
+          <p class="venue">ALICE Collaboration, JHEP 02 (2024) 066. Main analyzer and paper committee member.</p>
+        </div>
+      </div>
+      <div class="row">
+        <p class="when">2019</p>
+        <div class="what">
+          <p class="title"><a href="https://link.springer.com/article/10.1140/epja/i2019-12669-6">Radial flow and differential freeze-out in pp collisions at the LHC at √<i>s</i>&nbsp;=&nbsp;7&nbsp;TeV</a></p>
+          <p class="venue">Eur. Phys. J. A 55, 3 (2019). Co-author and analyzer.</p>
+        </div>
+      </div>
+
+      <h3 class="subhead">Conference proceedings</h3>
+      <p class="section-note">Written for the ALICE Collaboration, unless noted.</p>
+      <div class="row">
+        <p class="when">2026</p>
+        <div class="what">
+          <p class="title"><a href="https://inspirehep.net/literature/3153057">Studying charm-quark hadronization via charm-baryon production measurements in pp at the LHC with ALICE</a></p>
+          <p class="venue">EPJ Web Conf. 364 (2026) 08010</p>
+        </div>
+      </div>
+      <div class="row">
+        <p class="when">2025</p>
+        <div class="what">
+          <p class="title"><a href="https://www.epj-conferences.org/articles/epjconf/abs/2025/01/epjconf_sqm2024_04019/epjconf_sqm2024_04019.html">Investigation of early magnetic field and angular momentum in ultrarelativistic heavy-ion collisions via D<sup>*+</sup> spin alignment with ALICE</a></p>
+          <p class="venue">EPJ Web Conf. 316 (2025)</p>
+        </div>
+      </div>
+      <div class="row">
+        <p class="when">2023</p>
+        <div class="what">
+          <p class="title"><a href="https://pos.sissa.it/449/211/pdf">Recent charmonium measurements in Pb–Pb collisions with ALICE</a></p>
+          <p class="venue">PoS EPS-HEP (2023) 211</p>
+        </div>
+      </div>
+      <div class="row">
+        <p class="when">2022</p>
+        <div class="what">
+          <p class="title"><a href="https://pos.sissa.it/422/339/pdf">Prompt and non-prompt J/ψ production at midrapidity in Pb–Pb collisions at √<i>s</i><sub>NN</sub>&nbsp;=&nbsp;5.02&nbsp;TeV with ALICE</a></p>
+          <p class="venue">PoS LHCP (2022) 339</p>
+        </div>
+      </div>
+      <div class="row">
+        <p class="when">2022</p>
+        <div class="what">
+          <p class="title"><a href="https://www.actaphys.uj.edu.pl/fulltext?series=Sup&amp;vol=15&amp;aid=3-A37">Charmonium as a probe of hot quark matter in nuclear collisions with ALICE at the LHC</a></p>
+          <p class="venue">Acta Phys. Pol. B Proc. Suppl. 15, 3-A37 (2022)</p>
+        </div>
+      </div>
+      <div class="row">
+        <p class="when">2022</p>
+        <div class="what">
+          <p class="title"><a href="https://inspirehep.net/literature/2067013">Non-prompt J/ψ measurements at midrapidity in pp, p–Pb and Pb–Pb collisions with ALICE</a></p>
+          <p class="venue">PoS PANIC (2022) 239</p>
+        </div>
+      </div>
+      <div class="row">
+        <p class="when">2018</p>
+        <div class="what">
+          <p class="title"><a href="https://inspirehep.net/literature/1732712">An overview of differential freeze-out and radial flow in pp collisions at √<i>s</i>&nbsp;=&nbsp;7&nbsp;TeV at the LHC</a></p>
+          <p class="venue">DAE Symp. Nucl. Phys. 63 (2018) 982–983. Co-author and analyzer.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TALKS -->
+    <section id="talks" aria-labelledby="h-talks">
+      <h2 id="h-talks">Conference presentations</h2>
+
+      <h3 class="subhead">Parallel talks</h3>
+      <div class="row">
+        <p class="when">2026</p>
+        <div class="what">
+          <p class="title"><a href="https://indico.cern.ch/event/1522800/contributions/6982800/">Testing pQCD calculations and hadronisation with charm and beauty hadrons in pp collisions with ALICE</a></p>
+          <p class="venue">International Conference on High Energy Physics (ICHEP) 2026, Natal, Brazil, 31&nbsp;Jul&nbsp;–&nbsp;5&nbsp;Aug&nbsp;2026</p>
+        </div>
+      </div>
+      <div class="row">
+        <p class="when">2025</p>
+        <div class="what">
+          <p class="title"><a href="https://indico.cern.ch/event/1334113/contributions/6350989/">Studying charm-quark hadronization via charm-baryon production measurements in pp at the LHC with ALICE</a></p>
+          <p class="venue">Quark Matter (QM) 2025, Frankfurt, Germany, 6–&#8288;12&nbsp;April&nbsp;2025</p>
+        </div>
+      </div>
+      <div class="row">
+        <p class="when">2024</p>
+        <div class="what">
+          <p class="title"><a href="https://indico.in2p3.fr/event/29792/contributions/137127/">D<sup>*+</sup> spin alignment in ultrarelativistic heavy ion collisions in ALICE</a></p>
+          <p class="venue">Strangeness in Quark Matter (SQM) 2024, Strasbourg, France, 3–&#8288;7&nbsp;May&nbsp;2024</p>
+        </div>
+      </div>
+      <div class="row">
+        <p class="when">2023</p>
+        <div class="what">
+          <p class="title"><a href="https://indico.desy.de/event/34916/contributions/147718/">Recent charmonium measurements in Pb–Pb collisions with ALICE</a></p>
+          <p class="venue">European Physical Society High Energy Physics (EPS-HEP) Conference 2023, Hamburg, Germany, 21–&#8288;25&nbsp;Aug&nbsp;2023</p>
+        </div>
+      </div>
+      <div class="row">
+        <p class="when">2022</p>
+        <div class="what">
+          <p class="title"><a href="https://indico.cern.ch/event/1139676/contributions/5049429/">Prompt, non-prompt, and coherent J/ψ production in Pb–Pb collisions with ALICE</a></p>
+          <p class="venue">EMMI Conference 2022, Kraków, Poland, 19–&#8288;22&nbsp;Sept&nbsp;2022</p>
+        </div>
+      </div>
+      <div class="row">
+        <p class="when">2022</p>
+        <div class="what">
+          <p class="title"><a href="https://agenda.infn.it/event/28874/contributions/168955/">Inclusive, prompt, and non-prompt J/ψ production at midrapidity in Pb–Pb collisions at 5.02&nbsp;TeV with ALICE</a></p>
+          <p class="venue">International Conference on High Energy Physics (ICHEP) 2022, Bologna, Italy, 6–&#8288;13&nbsp;July&nbsp;2022</p>
+        </div>
+      </div>
+      <div class="row">
+        <p class="when">2022</p>
+        <div class="what">
+          <p class="title"><a href="https://indico.cern.ch/event/1034990/contributions/4663456/">Charmonium as a probe of hot quark matter in nuclear collisions in ALICE at the LHC</a></p>
+          <p class="venue">Epiphany 2022, Kraków, Poland, 10–&#8288;14&nbsp;Jan&nbsp;2022 (online), student session</p>
+        </div>
+      </div>
+      <div class="row">
+        <p class="when">2021</p>
+        <div class="what">
+          <p class="title"><a href="https://indico.meson.if.uj.edu.pl/event/1/contributions/60/">Beauty production in pp and Pb–Pb collisions with ALICE</a></p>
+          <p class="venue">MESON 2021, 17–&#8288;21&nbsp;May&nbsp;2021 (online)</p>
+        </div>
+      </div>
+
+      <h3 class="subhead">Posters</h3>
+      <div class="row">
+        <p class="when">2022</p>
+        <div class="what">
+          <p class="title"><a href="https://indico.cern.ch/event/1109611/contributions/4820786/">Prompt and non-prompt J/ψ production at midrapidity in Pb–Pb collisions at 5.02&nbsp;TeV with ALICE</a></p>
+          <p class="venue">Large Hadron Collider Physics Conference (LHCP) 2022, 16–&#8288;20&nbsp;May&nbsp;2022 (online)</p>
+        </div>
+      </div>
+      <div class="row">
+        <p class="when">2022</p>
+        <div class="what">
+          <p class="title"><a href="https://indico.cern.ch/event/895086/contributions/4723746/">Nuclear modification factor of prompt and non-prompt J/ψ in Pb–Pb collisions at 5.02&nbsp;TeV at midrapidity with ALICE</a></p>
+          <p class="venue">Quark Matter (QM) 2022, Kraków, Poland, 4–&#8288;10&nbsp;April&nbsp;2022</p>
+        </div>
+      </div>
+      <div class="row">
+        <p class="when">2021</p>
+        <div class="what">
+          <p class="title"><a href="https://indico.lip.pt/event/592/contributions/3273/">Non-prompt J/ψ measurements at midrapidity in pp, p–Pb and Pb–Pb collisions with ALICE</a></p>
+          <p class="venue">Particles and Nuclei Conference (PANIC) 2021, 5–&#8288;10&nbsp;Sept&nbsp;2021 (online)</p>
+        </div>
+      </div>
+      <div class="row">
+        <p class="when">2021</p>
+        <div class="what">
+          <p class="title"><a href="https://indico.cern.ch/event/854124/contributions/4134761/">Measurements of non-prompt J/ψ-meson at midrapidity in Pb–Pb collisions with ALICE at the LHC</a></p>
+          <p class="venue">Initial Stages (IS) Conference 2021, 10–&#8288;15&nbsp;January&nbsp;2021 (online)</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ALICE ROLES -->
+    <section id="alice" aria-labelledby="h-alice">
+      <h2 id="h-alice">Roles in the ALICE Collaboration</h2>
+
+      <h3 class="subhead">Internal and analysis review committees</h3>
+      <p class="section-note">Reviewing ALICE paper drafts, checking the consistency of the analysis procedure, and suggesting improvements to the quality of the measurements.</p>
+      <div class="row">
+        <p class="when">IRC member</p>
+        <div class="what"><p>Multiplicity-dependent Ξ<span class="ss"><sup>+</sup><sub>c</sub></span> and Ξ<span class="ss"><sup>0</sup><sub>c</sub></span> production in pp collisions at √<i>s</i>&nbsp;=&nbsp;13&nbsp;TeV (submitted to JHEP)</p></div>
+      </div>
+      <div class="row">
+        <p class="when">ARC member</p>
+        <div class="what"><p>Measurement of D<sup>*+</sup> spin alignment in pp collisions at √<i>s</i>&nbsp;=&nbsp;13.6&nbsp;TeV</p></div>
+      </div>
+      <div class="row">
+        <p class="when">ARC member</p>
+        <div class="what"><p>Double charm production measurements: D<sup>0</sup>–J/ψ associated production and D<sup>0</sup>–D<sup>0</sup> production in pp collisions at √<i>s</i>&nbsp;=&nbsp;13.6&nbsp;TeV</p></div>
+      </div>
+      <div class="row">
+        <p class="when">ARC member</p>
+        <div class="what"><p>Lifetime measurements of Λ<span class="ss"><sup>+</sup><sub>c</sub></span> and Ω<span class="ss"><sup>0</sup><sub>c</sub></span> baryons in pp collisions at √<i>s</i>&nbsp;=&nbsp;13.6&nbsp;TeV</p></div>
+      </div>
+      <div class="row">
+        <p class="when">Referee</p>
+        <div class="what"><p>External journal peer review for the Turkish Journal of Physics (TÜBİTAK)</p></div>
+      </div>
+
+      <h3 class="subhead">Detector operations and data taking</h3>
+      <div class="row">
+        <p class="when">Mar – Apr 2024</p>
+        <div class="what"><p><span class="role-line">Shift Leader and Detector Control System (DCS) shifter.</span> Managed real-time detector operations, safety protocols, and data-taking quality control during active LHC runs.</p></div>
+      </div>
+      <div class="row">
+        <p class="when">Jul 2023</p>
+        <div class="what"><p><span class="role-line">Data Quality Control (QC) shifter.</span> Monitored live data streams to identify, troubleshoot, and document detector anomalies, ensuring high-quality data preservation.</p></div>
+      </div>
+
+      <h3 class="subhead">Data quality and software contributions</h3>
+      <div class="row">
+        <p class="when">Feb – Dec 2023</p>
+        <div class="what"><p><span class="role-line">Global track quality monitoring in reconstructed data.</span> Systematic evaluation of global track reconstruction quality in reconstructed datasets from pp and Pb–Pb collisions. Processed large-scale data samples and presented weekly quality control assessments at ALICE QA collaboration meetings.</p></div>
+      </div>
+      <div class="row">
+        <p class="when">Jan – Dec 2024</p>
+        <div class="what"><p><span class="role-line">Track impact parameter performance.</span> Evaluated and monitored track impact parameter performance across LHC Run 3 datasets (pp and Pb–Pb collisions). Conducted comparative studies between data and anchored Monte Carlo simulations, presented regularly in internal ALICE working groups.</p></div>
+      </div>
+      <div class="row">
+        <p class="when">Ongoing</p>
+        <div class="what"><p><span class="role-line">Monte Carlo simulation tuning (ALICE Padova group).</span> Developed and implemented data-driven parametrizations to tune impact parameter distributions in Monte Carlo simulations, significantly improving simulation-to-data agreement for the collaboration.</p></div>
+      </div>
+    </section>
+
+    <!-- FUNDING & AWARDS -->
+    <section id="funding" aria-labelledby="h-funding">
+      <h2 id="h-funding">Funding and awards</h2>
+
+      <h3 class="subhead">Fellowships and grants</h3>
+      <div class="row">
+        <p class="when">2025 – 2027</p>
+        <div class="what"><p><span class="role-line">INFN Postdoctoral Research Fellowship</span>, INFN Section of Padova, Italy (2 years, total 77,447 EUR)</p></div>
+      </div>
+      <div class="row">
+        <p class="when">2023 – 2025</p>
+        <div class="what"><p><span class="role-line">Postdoctoral Research Grant (INFN &amp; STRONG-2020)</span>, INFN Padova, Italy (24 months)</p></div>
+      </div>
+      <div class="row">
+        <p class="when">2023</p>
+        <div class="what"><p><span class="role-line">Postdoctoral Research Grant</span>, University of Padova, Italy (4 months, total 5,600 EUR)</p></div>
+      </div>
+      <div class="row">
+        <p class="when">2023</p>
+        <div class="what"><p><span class="role-line">CNRS Postdoctoral Fellowship</span>, IJCLab, University of Paris-Saclay, France (declined)</p></div>
+      </div>
+      <div class="row">
+        <p class="when">2018 – 2022</p>
+        <div class="what"><p><span class="role-line">Doctoral Fellowship</span>, Institute of Nuclear Physics, Polish Academy of Sciences (IFJ PAN)</p></div>
+      </div>
+      <div class="row">
+        <p class="when">Jan 2022</p>
+        <div class="what"><p><span class="role-line">NAWA Student Exchange Grant</span>, University and INFN Section of Cagliari, Italy (2-week scientific visit, 10,000 PLN / ~2,500 EUR)</p></div>
+      </div>
+
+      <h3 class="subhead">Awards and qualifications</h3>
+      <div class="row">
+        <p class="when">2024</p>
+        <div class="what"><p><span class="role-line">INFN Fellowship Award, ranked 3rd globally (score 95.7%).</span> <a href="https://jobs.dsi.infn.it/dettagli_job.php?id=4180">Awarded</a> the Senior Level 3 Research Grant in Experimental Physics. Only 20 recipients are selected annually worldwide across experimental particle, nuclear, astroparticle physics, and technological research.</p></div>
+      </div>
+      <div class="row">
+        <p class="when">2016</p>
+        <div class="what"><p><span class="role-line">Top 1% national rank, <a href="https://en.wikipedia.org/wiki/Joint_Admission_Test_for_Masters">IIT-JAM</a>.</span> Secured All India Rank 195 out of thousands of candidates in the highly competitive national entrance examination for the M.Sc. in Physics.</p></div>
+      </div>
+      <div class="row">
+        <p class="when">2016, 2018</p>
+        <div class="what"><p><span class="role-line">National research eligibility qualifications (India).</span> Qualified in the Joint Entrance Screening Test (<a href="https://en.wikipedia.org/wiki/Joint_Entrance_Screening_Test">JEST-2016</a>) and the Graduate Aptitude Test in Engineering (<a href="https://en.wikipedia.org/wiki/Graduate_Aptitude_Test_in_Engineering">GATE-2018</a>).</p></div>
+      </div>
+    </section>
+
+    <!-- TEACHING -->
+    <section id="teaching" aria-labelledby="h-teaching">
+      <h2 id="h-teaching">Teaching and mentoring</h2>
+
+      <div class="row">
+        <p class="when">Lecturer</p>
+        <div class="what">
+          <p>Erasmus Mundus Joint Master’s degree program (<a href="https://www.emm-nucphys.eu/study-programme/curriculum-s/curriculum-2020-2025-intakes-4-7">NucPhys</a> at <a href="http://www.dfa.unipd.it/dettaglio/carosello/nucphys/">UniPd</a>): lectures on “Ultrarelativistic heavy-ion collisions” at the University of Padova.</p>
+          <ul class="tasks">
+            <li>Designed the hands-on sessions for D<sup>0</sup>-meson yield extraction.</li>
+            <li>Designed and delivered a novel hands-on lecture on machine learning in heavy-ion collisions.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="row">
+        <p class="when">2021</p>
+        <div class="what"><p><span class="role-line">Co-supervisor.</span> Co-supervised two undergraduate summer students in the IFJ PAN Particle Physics Summer Student Programme (<a href="https://ppss.ifj.edu.pl/materials_2021.php">PPSS 2021</a>), in a project on the application of machine learning to J/ψ signal extraction using electron–positron pairs in Pb–Pb collisions in ALICE.</p></div>
+      </div>
+      <div class="row">
+        <p class="when">2019</p>
+        <div class="what"><p><span class="role-line">Summer school.</span> Selected to attend Machine Learning in High-Energy Physics (MLHEP-2019), DESY, Hamburg, Germany.</p></div>
+      </div>
+      <div class="row">
+        <p class="when">Jan 2022</p>
+        <div class="what"><p><span class="role-line">Research visit.</span> 15-day internship at the University and INFN Cagliari, Italy, working on prompt and non-prompt J/ψ measurements in Pb–Pb collisions with Dr. Fiorella Fionda (Physics Working Group convener in ALICE).</p></div>
+      </div>
+    </section>
+
+    <!-- WRITING & OUTREACH -->
+    <section id="writing" aria-labelledby="h-writing">
+      <h2 id="h-writing">Writing and outreach</h2>
+      <p class="section-note">Science communication on <a href="https://medium.com/@s.hymanshu">Medium</a>, on physics, mathematics, and artificial intelligence.</p>
+
+      <div class="row">
+        <p class="when">Mar 2025</p>
+        <div class="what"><p class="title"><a href="https://medium.com/@s.hymanshu/prompt-less-ai-a-quest-of-motive-5ddf23d0f57d">Prompt-less AI: A quest of motive</a></p></div>
+      </div>
+      <div class="row">
+        <p class="when">Oct 2025</p>
+        <div class="what"><p class="title"><a href="https://medium.com/@s.hymanshu/how-long-do-we-care-the-nobel-prize-and-the-attention-span-8ffbfed3efcf">How long do we care? The Nobel Prize and the attention span</a></p></div>
+      </div>
+      <div class="row">
+        <p class="when">Nov 2025</p>
+        <div class="what"><p class="title"><a href="https://medium.com/@s.hymanshu/visualizing-the-irrationals-from-math-to-art-422978c148cf">Irrational numbers on canvas: turning π and <i>e</i> into art</a></p></div>
+      </div>
+      <p class="section-note" style="margin-top:.25rem;margin-left:calc(var(--date-col) + 1.75rem)">Hand-picked and <a href="https://help.medium.com/hc/en-us/articles/360006362473-Medium-s-Distribution-Guidelines-How-curators-review-stories-for-Boost-General-and-Network-Distribution">“Boosted”</a> by the Medium curator team: distributed across 11,000+ feeds, with 500+ views and 200+ reads.</p>
+
+      <h3 class="subhead">Public outreach</h3>
+      <div class="row">
+        <p class="when">2018 – 2022</p>
+        <div class="what"><p><span class="role-line">Exhibitor, Małopolska Researchers’ Night, Kraków, Poland.</span> Every September for four years. Designed and built a portable DIY cloud chamber for real-time tracking and demonstration of cosmic radiation to the general public (<a href="https://cernbox.cern.ch/s/3PsuLHac8T1nh6O">experimental tracking video</a>).</p></div>
+      </div>
+    </section>
+
+    <!-- SKILLS -->
+    <section id="skills" aria-labelledby="h-skills" style="padding-bottom:0">
+      <h2 id="h-skills">Professional skills</h2>
+      <dl class="skills">
+        <div><dt>Programming</dt><dd>C, C++, Python (including data visualization), bash scripting</dd></div>
+        <div><dt>Machine learning</dt><dd>Boosted Decision Trees (BDTs), multilayer perceptrons and neural networks, deep learning applications</dd></div>
+        <div><dt>Simulation</dt><dd>Heavy-ion simulations with the AMPT event generator</dd></div>
+        <div><dt>Analysis and tools</dt><dd>HEP data analysis with ROOT and RooFit, GitHub, LaTeX</dd></div>
+      </dl>
+    </section>
+
+  </main>
+</div>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div>
+      <h2>Contact</h2>
+      <p>Himanshu Sharma, PhD<br>Istituto Nazionale di Fisica Nucleare (INFN), Section of Padova, Italy</p>
+      <ul style="margin-top:.9rem">
+        <li><a href="mailto:himanshu.sharma@cern.ch">himanshu.sharma@cern.ch</a></li>
+        <li><a href="mailto:s.hymanshu@gmail.com">s.hymanshu@gmail.com</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Elsewhere</h2>
+      <ul>
+        <li><a href="https://orcid.org/0000-0003-2753-4283">ORCID</a></li>
+        <li><a href="https://scholar.google.com/citations?user=sOjQO_YAAAAJ&amp;hl=en">Google Scholar</a></li>
+        <li><a href="https://inspirehep.net/literature?sort=mostrecent&amp;size=25&amp;page=1&amp;q=Himanshu%20SHARMA%20ALICE&amp;doc_type=published">INSPIRE-HEP</a></li>
+        <li><a href="https://github.com/phymanshu">GitHub</a></li>
+        <li><a href="https://www.linkedin.com/in/shymanshu">LinkedIn</a></li>
+        <li><a href="https://www.kaggle.com/shymanshu">Kaggle</a></li>
+        <li><a href="https://medium.com/@s.hymanshu">Medium</a></li>
+      </ul>
+    </div>
+    <p class="updated">Last updated September 2026.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var links = Array.prototype.slice.call(document.querySelectorAll('[data-nav] a'));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+  if (!('IntersectionObserver' in window)) return;
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      links.forEach(function (l) { l.removeAttribute('aria-current'); });
+      var a = byId[e.target.id];
+      if (a) a.setAttribute('aria-current', 'true');
+    });
+  }, { rootMargin: '-15% 0px -75% 0px' });
+  document.querySelectorAll('main section[id]').forEach(function (s) { io.observe(s); });
+})();
+</script>
 </body>
 </html>
