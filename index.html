@@ -226,6 +226,7 @@ dl.skills dd{margin:0}
   .hero h1{font-size:30pt;color:#000;margin-bottom:.5rem}
   .hero h1 span{display:inline}
   .role,.affil{color:#000;max-width:none;margin-bottom:.3rem}
+  #fun{display:none}
   .event,.rail,.actions,.site-footer .footer-inner>div:last-of-type{display:none}
   .page{display:block;padding:0}
   main{max-width:none;padding-top:1rem}
@@ -391,6 +392,7 @@ dl.skills dd{margin:0}
         <li><a href="#teaching">Teaching</a></li>
         <li><a href="#writing">Writing</a></li>
         <li><a href="#skills">Skills</a></li>
+        <li><a href="#fun">Fun!</a></li>
       </ul>
     </nav>
     <div class="rail-links">
@@ -410,7 +412,7 @@ dl.skills dd{margin:0}
     <section id="profile" aria-labelledby="h-profile">
       <h2 id="h-profile">Profile</h2>
       <p class="lede">Postdoctoral researcher in experimental high-energy nuclear physics (ALICE Collaboration at CERN) specializing in charmonium production, heavy-flavor hadronization, and machine learning applications. Proven track record in leading complex data analyses, calibrating detector simulations, and serving on international collaboration review committees. Recognized for providing high-precision measurements that test and constrain QCD models, supported by an active portfolio in university-level lecturing, student mentorship, and science communication.</p>
-      <p class="keywords"><strong>Keywords</strong>Strong interactions, quantum chromodynamics (QCD), quark–gluon plasma (QGP), high-energy nuclear collisions, charmonium and heavy-flavor production, machine learning applications.</p>
+      <p class="keywords"><strong>Keywords</strong>Strong interactions, quantum chromodynamics (QCD), quark–gluon plasma (QGP), high-energy nuclear collisions, charmonium and heavy-flavor production, jet substructure, machine learning applications.</p>
     </section>
 
     <!-- RESEARCH & EDUCATION -->
@@ -829,7 +831,7 @@ dl.skills dd{margin:0}
     </section>
 
     <!-- SKILLS -->
-    <section id="skills" aria-labelledby="h-skills" style="padding-bottom:0">
+    <section id="skills" aria-labelledby="h-skills">
       <h2 id="h-skills">Professional skills</h2>
       <dl class="skills">
         <div><dt>Programming</dt><dd>C, C++, Python (including data visualization), bash scripting</dd></div>
@@ -837,6 +839,18 @@ dl.skills dd{margin:0}
         <div><dt>Simulation</dt><dd>Heavy-ion simulations with the AMPT event generator</dd></div>
         <div><dt>Analysis and tools</dt><dd>HEP data analysis with ROOT and RooFit, GitHub, LaTeX</dd></div>
       </dl>
+    </section>
+
+    <!-- FUN -->
+    <section id="fun" aria-labelledby="h-fun" style="padding-bottom:0">
+      <h2 id="h-fun">Fun!</h2>
+      <div class="row">
+        <p class="when">Play</p>
+        <div class="what">
+          <p class="title"><a href="https://phymanshu.github.io/BuffonNeedle/">Neon Buffon’s Needle</a></p>
+          <p class="venue">An interactive take on Buffon’s needle problem: drop needles on a lined floor and watch a simple probability experiment close in on π.</p>
+        </div>
+      </div>
     </section>
 
   </main>
@@ -883,6 +897,13 @@ dl.skills dd{margin:0}
     });
   }, { rootMargin: '-15% 0px -75% 0px' });
   document.querySelectorAll('main section[id]').forEach(function (s) { io.observe(s); });
+  // a short final section may never reach the observer band, so activate it at the page bottom
+  window.addEventListener('scroll', function () {
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+      links.forEach(function (l) { l.removeAttribute('aria-current'); });
+      links[links.length - 1].setAttribute('aria-current', 'true');
+    }
+  }, { passive: true });
 })();
 </script>
 </body>
