@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QGP freeze-out surface — Himanshu Sharma</title>
+<meta name="description" content="Interactive 3D visualisation of the quark-gluon plasma freeze-out surface in Pb-Pb collisions at LHC energies, and its FNO surrogate representation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;
+  --surface:#111820;
+  --border:#1e2a38;
+  --text:#c9d1d9;
+  --muted:#6e7e8e;
+  --accent:#EF9F27;
+  --blue:#4A90D9;
+  --teal:#1D9E75;
+  --red:#E24B4A;
+  --sans:'Schibsted Grotesk',system-ui,sans-serif;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);overflow-x:hidden}
+body{display:flex;flex-direction:column;min-height:100vh}
+
+header{
+  padding:1.2rem 2rem;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);
+  flex-wrap:wrap;gap:.75rem;
+}
+.logo{font-size:.9rem;font-weight:500;color:var(--muted);text-decoration:none}
+.logo span{color:var(--text)}
+.back{font-size:.8rem;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:.3rem .75rem;border-radius:6px}
+.back:hover{border-color:var(--blue);color:var(--blue)}
+
+.hero{padding:2rem 2rem 1rem;max-width:900px;margin:0 auto;width:100%}
+.hero h1{font-size:clamp(1.1rem,3vw,1.5rem);font-weight:700;letter-spacing:-.02em;line-height:1.25;margin-bottom:.5rem}
+.hero h1 span{color:var(--accent)}
+.hero p{font-size:.85rem;color:var(--muted);line-height:1.6;max-width:55ch}
+
+.canvas-wrap{
+  max-width:900px;margin:0 auto 1rem;width:100%;padding:0 1rem;
+}
+canvas{display:block;width:100%;border-radius:10px;border:1px solid var(--border)}
+
+.legend{
+  max-width:900px;margin:0 auto .75rem;padding:0 1rem;
+  display:flex;gap:1.25rem;flex-wrap:wrap;font-size:.75rem;color:var(--muted);
+}
+.ld{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle}
+
+.controls{
+  max-width:900px;margin:0 auto 1.5rem;padding:0 1rem;
+  display:grid;grid-template-columns:1fr 1fr;gap:.75rem 2rem;
+}
+@media(max-width:540px){.controls{grid-template-columns:1fr}}
+.ctrl{display:flex;align-items:center;gap:8px;font-size:.78rem}
+.ctrl label{min-width:80px;color:var(--muted)}
+.ctrl input[type=range]{
+  flex:1;-webkit-appearance:none;height:3px;border-radius:2px;
+  background:var(--border);outline:none;cursor:pointer;
+}
+.ctrl input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+  background:var(--accent);cursor:pointer;
+}
+.ctrl span{min-width:34px;text-align:right;font-weight:500;color:var(--text)}
+
+.info-row{
+  max-width:900px;margin:0 auto 2rem;padding:0 1rem;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.75rem;
+}
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;padding:.75rem 1rem;
+}
+.card dt{font-size:.7rem;color:var(--muted);margin-bottom:.25rem}
+.card dd{font-size:1rem;font-weight:700;color:var(--text)}
+.card dd small{font-size:.7rem;font-weight:400;color:var(--muted);margin-left:.25rem}
+
+.eq{
+  max-width:900px;margin:0 auto 2rem;padding:.75rem 1.25rem;
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  font-size:.78rem;color:var(--muted);line-height:1.8;
+}
+.eq b{color:var(--text);font-weight:500}
+
+footer{
+  margin-top:auto;padding:1rem 2rem;border-top:1px solid var(--border);
+  font-size:.75rem;color:var(--muted);display:flex;gap:1rem;flex-wrap:wrap;justify-content:space-between;
+}
+footer a{color:var(--muted);text-decoration:none}
+footer a:hover{color:var(--blue)}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="https://phymanshu.github.io"><span>Himanshu Sharma</span> · ALICE / CERN</a>
+  <a class="back" href="https://phymanshu.github.io">← back to site</a>
+</header>
+
+<div class="hero">
+  <h1>QGP freeze-out surface <span>&</span> FNO surrogate</h1>
+  <p>Interactive 3D view of the quark-gluon plasma particlization hypersurface in Pb–Pb collisions at √s<sub>NN</sub> = 5.36 TeV, and how a Fourier Neural Operator approximates it on a coarse 61×61 grid.</p>
+</div>
+
+<div class="canvas-wrap">
+  <canvas id="cv"></canvas>
+</div>
+
+<div class="legend">
+  <span><span class="ld" style="background:#E24B4A"></span>hot QGP core (ε >> e<sub>crit</sub>)</span>
+  <span><span class="ld" style="background:#EF9F27"></span>freeze-out surface (T ≈ 0.155 GeV)</span>
+  <span><span class="ld" style="background:#85B7EB"></span>cool hadronic edge</span>
+  <span><span class="ld" style="background:rgba(74,144,217,0.35);border:1px solid #4A90D9"></span>FNO 61×61 bin (averaged)</span>
+</div>
+
+<div class="controls">
+  <div class="ctrl"><label>rotate</label><input type="range" id="rot" min="0" max="360" value="30"><span id="rotv">30°</span></div>
+  <div class="ctrl"><label>show FNO grid</label><input type="range" id="showgrid" min="0" max="1" value="1" step="1"><span id="gridv">on</span></div>
+  <div class="ctrl"><label>tilt</label><input type="range" id="tilt" min="15" max="75" value="40"><span id="tiltv">40°</span></div>
+  <div class="ctrl"><label>show cells</label><input type="range" id="showraw" min="0" max="1" value="1" step="1"><span id="rawv">on</span></div>
+  <div class="ctrl"><label>b (fm)</label><input type="range" id="bpar" min="1" max="9" value="5" step="0.5"><span id="bv">5.0 fm</span></div>
+  <div class="ctrl"><label>point size</label><input type="range" id="ptsize" min="2" max="9" value="4" step="0.5"><span id="ptsizev">4</span></div>
+  <div class="ctrl"><label>auto-rotate</label><input type="range" id="autorot" min="0" max="1" value="1" step="1"><span id="autorotv">on</span></div>
+</div>
+
+<div class="info-row">
+  <dl class="card"><dt>freeze-out cells (Cornelius)</dt><dd>~65,000 <small>irregular 3D pts</small></dd></dl>
+  <dl class="card"><dt>FNO grid resolution</dt><dd>61 × 61 <small>= 3,721 bins</small></dd></dl>
+  <dl class="card"><dt>FNO T accuracy</dt><dd>1.5% <small>of T<sub>fo</sub></small></dd></dl>
+  <dl class="card"><dt>ε₂ correlation</dt><dd>0.993 <small>FNO vs vHLLE</small></dd></dl>
+  <dl class="card"><dt>GPU speedup</dt><dd>~200× <small>vs vHLLE CPU</small></dd></dl>
+  <dl class="card"><dt>training time</dt><dd>17 min <small>Tesla T4, 1999 events</small></dd></dl>
+</div>
+
+<div class="eq">
+  <b>Physics:</b> ∂<sub>μ</sub>T<sup>μν</sup> = 0 &nbsp;·&nbsp; τ<sub>π</sub> D π<sup>μν</sup>/dτ + π<sup>μν</sup> = 2η σ<sup>μν</sup> &nbsp;(η/s = 0.08)<br>
+  <b>FNO operator:</b> 𝒢 : ε(x,y,τ₀) → T<sup>μν</sup>(x,y,τ<sub>f</sub>) &nbsp;·&nbsp;
+  each layer: f<sup>(l+1)</sup>(x) = σ( ℱ<sup>-1</sup>[R<sup>(l)</sup>·ℱ[f<sup>(l)</sup>]](x) + W<sup>(l)</sup>f<sup>(l)</sup>(x) )<br>
+  <b>Code:</b> <a href="https://github.com/phymanshu/FNO_Hydro" style="color:#4A90D9">github.com/phymanshu/FNO_Hydro</a> &nbsp;·&nbsp;
+  vHLLE (Karpenko et al., CPC 185, 3016, 2014) &nbsp;·&nbsp; Pb-Pb √s<sub>NN</sub> = 5.36 TeV
+</div>
+
+<footer>
+  <span>Himanshu Sharma · INFN Padova · ALICE/CERN</span>
+  <span>
+    <a href="https://github.com/phymanshu/FNO_Hydro">FNO_Hydro on GitHub</a> ·
+    <a href="https://phymanshu.github.io">phymanshu.github.io</a>
+  </span>
+</footer>
+
+<script>
+const cv=document.getElementById('cv');
+const ctx=cv.getContext('2d');
+let animId=null, autoAngle=30;
+
+function resize(){
+  const w=cv.parentElement.clientWidth||800;
+  cv.width=w; cv.height=Math.round(w*0.55);
+}
+resize(); window.addEventListener('resize',()=>{resize();draw();});
+
+function W(){return cv.width;} function H(){return cv.height;}
+
+function proj(x,y,z,rot,tilt){
+  const cr=Math.cos(rot),sr=Math.sin(rot);
+  const ct=Math.cos(tilt),st=Math.sin(tilt);
+  const x2=x*cr-z*sr, z2=x*sr+z*cr;
+  const y2=y*ct-z2*st, z3=y*st+z2*ct;
+  const sc=Math.min(W(),H())*0.31;
+  return [W()*0.5+x2*sc, H()*0.46-y2*sc, z3];
+}
+
+function heatColor(t){
+  t=Math.max(0,Math.min(1,t));
+  if(t<0.25){const s=t/0.25;return[Math.round(133+s*(56-133)),Math.round(183+s*(91-183)),Math.round(235+s*(67-235))];}
+  if(t<0.5){const s=(t-0.25)/0.25;return[Math.round(56+s*(239-56)),Math.round(91+s*(159-91)),Math.round(67+s*(39-67))];}
+  if(t<0.75){const s=(t-0.5)/0.25;return[Math.round(239+s*(226-239)),Math.round(159+s*(75-159)),Math.round(39+s*(30-39))];}
+  const s=(t-0.75)/0.25;return[Math.round(226+s*(220-226)),Math.round(75+s*(40-75)),Math.round(30+s*(48-30))];
+}
+
+let cachedPts=null, cachedB=-1;
+function makePts(b){
+  if(Math.abs(b-cachedB)<0.01&&cachedPts) return cachedPts;
+  const pts=[]; const Rx=0.82,Ry=0.82*(1-0.13*(b-1)/8);
+  for(let i=0;i<2000;i++){
+    const phi=Math.random()*Math.PI*2;
+    const rr=0.3+Math.random()*0.72;
+    const x=Rx*rr*Math.cos(phi), z=Ry*rr*Math.sin(phi);
+    const eta=(Math.random()-0.5)*1.4, y=eta*0.22;
+    const dist=Math.sqrt((x/Rx)**2+(z/Ry)**2);
+    const isCore=dist<0.68, isSurface=dist>=0.68&&dist<1.08;
+    let T;
+    if(isCore) T=0.62+Math.random()*0.38;
+    else if(isSurface) T=0.3+Math.random()*0.35*(1-Math.abs(eta)/3.5);
+    else T=0.04+Math.random()*0.14;
+    pts.push({x,y,z,T,isCore,isSurface});
+  }
+  cachedPts=pts; cachedB=b; return pts;
+}
+
+function draw(){
+  const rot=parseFloat(document.getElementById('rot').value)*Math.PI/180;
+  const tilt=parseFloat(document.getElementById('tilt').value)*Math.PI/180;
+  const b=parseFloat(document.getElementById('bpar').value);
+  const showGrid=parseInt(document.getElementById('showgrid').value)===1;
+  const showRaw=parseInt(document.getElementById('showraw').value)===1;
+  const ptSize=parseFloat(document.getElementById('ptsize').value);
+
+  ctx.clearRect(0,0,W(),H());
+  ctx.fillStyle='#0d1117'; ctx.fillRect(0,0,W(),H());
+
+  const pts=makePts(b);
+  const sorted=pts.map(p=>{const[px,py,pz]=proj(p.x,p.y,p.z,rot,tilt);return{...p,px,py,pz};})
+    .sort((a,b)=>b.pz-a.pz);
+
+  if(showGrid){
+    const NB=13;
+    for(let i=0;i<NB;i++) for(let j=0;j<NB;j++){
+      const gx=(i/(NB-1)-0.5)*1.75, gz=(j/(NB-1)-0.5)*1.75;
+      if(Math.sqrt((gx/0.9)**2+(gz/0.88)**2)>1.12) continue;
+      const[bx,by]=proj(gx,0,gz,rot,tilt);
+      const sc=Math.min(W(),H())*0.31;
+      const cw=sc*1.75/NB*1.04;
+      const cellPts=sorted.filter(p=>p.isSurface&&Math.abs(p.x-gx)<0.08&&Math.abs(p.z-gz)<0.08);
+      const avgT=cellPts.length>0?cellPts.reduce((s,p)=>s+p.T,0)/cellPts.length:0;
+      ctx.save();
+      ctx.globalAlpha=0.2; ctx.strokeStyle='#4A90D9'; ctx.lineWidth=0.7;
+      ctx.strokeRect(bx-cw/2,by-cw/2,cw,cw);
+      if(avgT>0.1){
+        const c=heatColor((avgT-0.28)/0.38);
+        ctx.globalAlpha=0.4;
+        ctx.fillStyle=`rgb(${c[0]},${c[1]},${c[2]})`;
+        ctx.fillRect(bx-cw/2+1,by-cw/2+1,cw-2,cw-2);
+      }
+      ctx.restore();
+    }
+  }
+
+  if(showRaw){
+    sorted.forEach(p=>{
+      const depth=Math.max(0.15,Math.min(1,(p.pz+1.9)/3.8));
+      const r=ptSize*(p.isCore?1.3:p.isSurface?1.0:0.65)*depth;
+      const col=heatColor(p.T);
+      const alpha=p.isCore?0.9:p.isSurface?0.78:0.3;
+      ctx.save();
+      ctx.globalAlpha=alpha*depth;
+      ctx.fillStyle=`rgb(${col[0]},${col[1]},${col[2]})`;
+      ctx.beginPath(); ctx.arc(p.px,p.py,r,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+    });
+  }
+
+  const[ox,oy]=proj(0,0,0,rot,tilt);
+  [{e:[1.1,0,0],l:'x'},{e:[0,0,1.1],l:'y'},{e:[0,0.65,0],l:'η_s'}].forEach(ax=>{
+    const[tx,ty]=proj(ax.e[0],ax.e[1],ax.e[2],rot,tilt);
+    ctx.save(); ctx.strokeStyle='#3a4a5a'; ctx.lineWidth=0.7; ctx.globalAlpha=0.6;
+    ctx.beginPath(); ctx.moveTo(ox,oy); ctx.lineTo(tx,ty); ctx.stroke();
+    ctx.fillStyle='#4a5a6a'; ctx.font=`10px var(--sans,sans-serif)`; ctx.globalAlpha=0.8;
+    ctx.fillText(ax.l,tx+3,ty+3); ctx.restore();
+  });
+
+  ctx.save();
+  ctx.fillStyle='rgba(13,17,23,0.78)'; ctx.fillRect(8,8,192,58); ctx.globalAlpha=0.9;
+  ctx.font=`11px var(--sans,sans-serif)`; ctx.fillStyle='#6e7e8e';
+  ctx.fillText(`b = ${b.toFixed(1)} fm  ·  Pb-Pb  √sNN = 5.36 TeV`,14,24);
+  ctx.fillStyle='#EF9F27'; ctx.fillText(`~65,000 freeze-out cells  (Cornelius)`,14,40);
+  ctx.fillStyle='#4A90D9'; ctx.fillText(`FNO grid: 61×61 projected bins`,14,56);
+  ctx.restore();
+}
+
+let isAuto=true;
+function autoLoop(){
+  if(!isAuto){animId=null;return;}
+  autoAngle=(autoAngle+0.35)%360;
+  document.getElementById('rot').value=autoAngle;
+  document.getElementById('rotv').textContent=Math.round(autoAngle)+'°';
+  draw();
+  animId=requestAnimationFrame(autoLoop);
+}
+animId=requestAnimationFrame(autoLoop);
+
+['rot','tilt','bpar','showgrid','showraw','ptsize','autorot'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',function(){
+    const map={rot:'rotv',tilt:'tiltv',bpar:'bv',showgrid:'gridv',showraw:'rawv',ptsize:'ptsizev',autorot:'autorotv'};
+    const v=this.value, el=document.getElementById(map[id]);
+    if(id==='rot') el.textContent=Math.round(v)+'°';
+    else if(id==='tilt') el.textContent=Math.round(v)+'°';
+    else if(id==='bpar') el.textContent=parseFloat(v).toFixed(1)+' fm';
+    else if(id==='showgrid'||id==='showraw'||id==='autorot') el.textContent=v==='1'?'on':'off';
+    else el.textContent=parseFloat(v).toFixed(1);
+    if(id==='autorot'){
+      isAuto=v==='1';
+      if(isAuto&&!animId) animId=requestAnimationFrame(autoLoop);
+    }
+    if(id==='rot') isAuto=false;
+    if(id==='bpar') cachedPts=null;
+    if(!isAuto) draw();
+  });
+});
+</script>
+</body>
+</html>
