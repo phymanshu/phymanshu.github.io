@@ -1,0 +1,736 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Collidoscope</title>
+<meta name="description" content="A physical kaleidoscope: tumble loose fragments by turning the knob and watch the mirrored pattern shift and settle.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='16' fill='%230E1A26'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23FF6E9F'/%3E%3Ccircle cx='16' cy='7' r='2.4' fill='%237FE7DC'/%3E%3Ccircle cx='24' cy='20' r='2.4' fill='%23FFD166'/%3E%3Ccircle cx='8' cy='20' r='2.4' fill='%23C792FF'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400..900&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --deep:#0E1A26;
+  --deep2:#0A141E;
+  --paper:#ECEFF1;
+  --ink:#16222E;
+  --muted:#506070;
+  --rule:#C3CCD3;
+  --signal:#B01E56;
+  --signal-bright:#FF6E9F;
+  --on-deep:#EAF0F5;
+  --on-deep-muted:#9FB0C0;
+  --sans:"Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --c1:#FF6E9F;
+  --c2:#7FE7DC;
+  --c3:#FFD166;
+  --c4:#C792FF;
+  --c5:#FF9166;
+  --c6:#9BE564;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;min-height:100svh;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);
+  display:flex;flex-direction:column;
+}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--signal);outline-offset:3px;border-radius:3px}
+
+header{
+  padding:1.1rem clamp(1rem,4vw,2rem) .6rem;
+  display:flex;align-items:baseline;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+}
+.brand{display:flex;align-items:baseline;gap:.65rem}
+h1{margin:0;font:800 1.35rem/1 var(--sans);letter-spacing:-.02em}
+.tag{font:400 .875rem/1 var(--sans);color:var(--muted)}
+header a.home{font:500 .875rem var(--sans);color:var(--muted);text-decoration:none;border-bottom:1px solid var(--rule)}
+header a.home:hover{color:var(--signal);border-color:var(--signal)}
+
+main{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  padding:1rem clamp(1rem,4vw,2rem) 2rem;
+}
+
+.layout{
+  display:grid;grid-template-columns:minmax(0,1fr) 19rem;gap:clamp(1.5rem,4vw,3rem);
+  align-items:center;max-width:66rem;width:100%;
+}
+
+.stage-col{display:flex;flex-direction:column;align-items:center;gap:1.75rem}
+.stage-wrap{position:relative;width:min(78vw,30rem);aspect-ratio:1;}
+.stage-frame{
+  position:absolute;inset:-.6rem;border-radius:50%;
+  background:radial-gradient(circle at 32% 28%, var(--stage-hi,#16283A), var(--stage-lo,var(--deep2)) 68%);
+  box-shadow:0 1.75rem 3.5rem -1.25rem rgba(14,26,38,.55), inset 0 0 0 1px rgba(255,255,255,.04);
+}
+canvas{
+  position:absolute;inset:0;width:100%;height:100%;border-radius:50%;
+  cursor:crosshair;touch-action:none;display:block;
+}
+.hint{
+  position:absolute;left:50%;bottom:-2.1rem;transform:translateX(-50%);
+  font:500 .8125rem var(--sans);color:var(--muted);text-align:center;width:max-content;max-width:88vw;
+}
+
+/* --- rotation knob --- */
+.knob-wrap{display:flex;flex-direction:column;align-items:center;gap:.5rem}
+.knob{
+  position:relative;width:5.5rem;height:5.5rem;border-radius:50%;
+  background:radial-gradient(circle at 34% 30%, #223650, var(--deep) 72%);
+  box-shadow:0 .5rem 1.25rem -.4rem rgba(14,26,38,.5), inset 0 0 0 1px rgba(255,255,255,.06);
+  cursor:grab;touch-action:none;
+}
+.knob:active{cursor:grabbing}
+.knob::before{
+  content:"";position:absolute;left:50%;top:.55rem;width:.28rem;height:1.1rem;
+  background:var(--signal-bright);border-radius:.2rem;transform-origin:50% 2.15rem;
+  transform:translateX(-50%) rotate(var(--knob-angle,0deg));
+}
+.knob::after{
+  content:"";position:absolute;inset:.85rem;border-radius:50%;
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.08);
+}
+.knob-label{font:600 .75rem var(--sans);color:var(--muted);letter-spacing:.02em}
+
+button{
+  font:650 .9rem var(--sans);border:none;border-radius:2rem;padding:.62rem 1.15rem;cursor:pointer;
+  background:var(--deep);color:var(--on-deep);
+  transition:transform .12s ease, background .15s ease;
+}
+button:hover{background:#16283A}
+button:active{transform:scale(.96)}
+button.primary{background:var(--signal-bright);color:var(--deep)}
+button.primary:hover{background:#FF8AB2}
+button.ghost{background:transparent;color:var(--muted);box-shadow:inset 0 0 0 1.5px var(--rule)}
+button.ghost:hover{background:rgba(22,34,46,.06);color:var(--ink)}
+button.full{width:100%}
+
+.panel{display:flex;flex-direction:column;gap:1.5rem}
+.panel-group{
+  background:#fff;border-radius:1.25rem;padding:1.1rem 1.15rem;
+  box-shadow:inset 0 0 0 1.5px var(--rule);
+  display:flex;flex-direction:column;gap:.7rem;
+}
+.panel-title{
+  margin:0 0 .1rem;font:700 .8125rem var(--sans);letter-spacing:.02em;color:var(--muted);
+}
+
+.row-ctrl{display:flex;align-items:center;justify-content:space-between;gap:.75rem}
+.row-ctrl label{font:600 .8125rem var(--sans);color:var(--muted);flex-shrink:0}
+.row-ctrl select{
+  font:650 .875rem var(--sans);color:var(--ink);background:var(--paper);border:none;border-radius:1.5rem;
+  padding:.4rem .8rem;cursor:pointer;max-width:11rem;
+}
+.row-ctrl select:disabled{opacity:.45;cursor:not-allowed}
+.row-ctrl input[type=range]{
+  width:8rem;accent-color:var(--signal-bright);cursor:pointer;
+}
+
+.btn-row{display:flex;gap:.6rem}
+.btn-row button{flex:1}
+
+.toggle{
+  display:flex;align-items:center;gap:.5rem;
+  background:var(--paper);border-radius:1.5rem;padding:.5rem 1rem;
+  box-shadow:inset 0 0 0 1.5px var(--rule);cursor:pointer;
+  font:600 .8125rem var(--sans);color:var(--muted);user-select:none;
+  width:fit-content;
+}
+.toggle input{accent-color:var(--signal-bright);cursor:pointer;width:1rem;height:1rem}
+.toggle:has(input:checked){color:var(--ink)}
+
+.palette{display:flex;gap:.4rem;align-items:center;flex-wrap:wrap}
+.swatch{
+  width:1.7rem;height:1.7rem;border-radius:50%;border:none;cursor:pointer;padding:0;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.55);
+  transition:transform .12s ease;
+}
+.swatch:hover{transform:scale(1.12)}
+.swatch[aria-pressed="true"]{box-shadow:0 0 0 2.5px var(--paper), 0 0 0 4.5px var(--ink)}
+
+footer{
+  text-align:center;padding:0 1rem 1.5rem;font:400 .8125rem var(--sans);color:var(--muted);
+}
+footer a{color:var(--muted);text-decoration-color:rgba(80,96,112,.4)}
+footer a:hover{color:var(--signal)}
+
+@media (max-width:56rem){
+  .layout{grid-template-columns:1fr;justify-items:center;max-width:32rem}
+  .panel{width:100%;max-width:26rem}
+}
+@media (max-width:26rem){
+  h1{font:800 1.15rem/1 var(--sans)}
+  button{padding:.55rem .95rem;font-size:.85rem}
+  .knob{width:4.6rem;height:4.6rem}
+  .panel-group{padding:1rem}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>Collidoscope</h1>
+    <span class="tag">tilt it, tumble it</span>
+  </div>
+  <a class="home" href="https://phymanshu.github.io/#playground">← back to site</a>
+</header>
+
+<main>
+  <div class="layout">
+    <div class="stage-col">
+      <div class="stage-wrap">
+        <div class="stage-frame"></div>
+        <canvas id="scope" aria-label="Kaleidoscope canvas. Click or tap inside to drop a loose fragment; turn the knob to tumble them." role="img"></canvas>
+        <p class="hint" id="hintText">click to drop fragments · turn the knob to tumble them</p>
+      </div>
+      <div class="knob-wrap" id="knobWrap">
+        <div class="knob" id="knob" role="slider" tabindex="0" aria-label="Tilt the tube" aria-valuemin="-180" aria-valuemax="180" aria-valuenow="0"></div>
+        <span class="knob-label" id="knobLabel">tilt</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-group">
+        <h2 class="panel-title">Fragments</h2>
+        <div class="palette" role="group" aria-label="Shape color">
+          <button class="swatch" style="background:var(--c1)" data-color="0" aria-pressed="true" aria-label="Pink"></button>
+          <button class="swatch" style="background:var(--c2)" data-color="1" aria-pressed="false" aria-label="Cyan"></button>
+          <button class="swatch" style="background:var(--c3)" data-color="2" aria-pressed="false" aria-label="Amber"></button>
+          <button class="swatch" style="background:var(--c4)" data-color="3" aria-pressed="false" aria-label="Violet"></button>
+          <button class="swatch" style="background:var(--c5)" data-color="4" aria-pressed="false" aria-label="Coral"></button>
+          <button class="swatch" style="background:var(--c6)" data-color="5" aria-pressed="false" aria-label="Lime"></button>
+        </div>
+        <div class="row-ctrl">
+          <label for="shapeSelect">Shape</label>
+          <select id="shapeSelect">
+            <option value="random" selected>Random</option>
+            <option value="circle">Circle</option>
+            <option value="triangle">Triangle</option>
+            <option value="diamond">Diamond</option>
+            <option value="bar">Bar</option>
+            <option value="ring">Ring</option>
+          </select>
+        </div>
+        <div class="row-ctrl">
+          <label for="sizeRange">Size</label>
+          <input type="range" id="sizeRange" min="0.6" max="1.6" step="0.05" value="1">
+        </div>
+        <div class="btn-row">
+          <button class="primary" id="scatterBtn" type="button">Scatter</button>
+          <button class="ghost" id="clearBtn" type="button">Clear</button>
+        </div>
+      </div>
+
+      <div class="panel-group">
+        <h2 class="panel-title">Scope</h2>
+        <div class="row-ctrl">
+          <label for="sectorSelect">Sectors</label>
+          <select id="sectorSelect">
+            <option value="4">4</option>
+            <option value="6" selected>6</option>
+            <option value="8">8</option>
+            <option value="10">10</option>
+            <option value="12">12</option>
+          </select>
+        </div>
+        <div class="row-ctrl">
+          <label for="symmetrySelect">Symmetry</label>
+          <select id="symmetrySelect">
+            <option value="both" selected>Mirror + rotate</option>
+            <option value="rotate">Rotate only (pinwheel)</option>
+            <option value="mirror">Mirror only (one reflection)</option>
+          </select>
+        </div>
+        <div class="row-ctrl">
+          <label for="themeSelect">Background</label>
+          <select id="themeSelect">
+            <option value="navy" selected>Navy</option>
+            <option value="plum">Plum</option>
+            <option value="forest">Forest</option>
+            <option value="charcoal">Charcoal</option>
+            <option value="midnight">Midnight blue</option>
+            <option value="rose">Rose</option>
+            <option value="amber">Amber dusk</option>
+            <option value="teal">Deep teal</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="panel-group">
+        <h2 class="panel-title">Extras</h2>
+        <label class="toggle">
+          <input type="checkbox" id="soundToggle">
+          <span>Sound</span>
+        </label>
+        <button class="ghost full" id="saveBtn" type="button">Save image</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Part of Himanshu Sharma's <a href="https://phymanshu.github.io/#playground">science playground</a> · <a href="https://github.com/phymanshu/Collidoscope">Collidoscope on GitHub</a>
+</footer>
+
+<script>
+(function () {
+  var canvas = document.getElementById('scope');
+  var ctx = canvas.getContext('2d');
+  var sectorSelect = document.getElementById('sectorSelect');
+  var scatterBtn = document.getElementById('scatterBtn');
+  var clearBtn = document.getElementById('clearBtn');
+  var swatches = Array.prototype.slice.call(document.querySelectorAll('.swatch'));
+  var knob = document.getElementById('knob');
+
+  var COLORS = ['#FF6E9F', '#7FE7DC', '#FFD166', '#C792FF', '#FF9166', '#9BE564'];
+
+  var DPR = Math.min(window.devicePixelRatio || 1, 2.5);
+  var size = 0;
+  var R = 0;
+  var particles = [];   // {x,y (unit space -1..1), vx, vy, shape, sizeScale, rot, vrot, color}
+  var currentColor = 0;
+  var symmetryMode = 'both';   // 'both' | 'rotate' | 'mirror'
+  var gravityAngle = -Math.PI / 2;  // "down" direction in tube space, starts pointing up-canvas
+  var knobAngle = 0;                // visual knob rotation, degrees
+  var lastTiltTime = 0;
+  var gravityChanged = true;
+  var framesSinceChange = 0;
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function resize() {
+    var rect = canvas.getBoundingClientRect();
+    size = rect.width;
+    canvas.width = size * DPR;
+    canvas.height = size * DPR;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    R = size / 2;
+  }
+
+  function sectorCount() { return parseInt(sectorSelect.value, 10); }
+  function randRange(a, b) { return a + Math.random() * (b - a); }
+
+  var SHAPES = ['circle', 'triangle', 'diamond', 'bar', 'ring'];
+  var currentShape = 'random';
+  var currentSize = 1;  // 0.6 - 1.6 multiplier, user controlled
+
+  function addParticle(x, y, color, shapeOverride, sizeOverride) {
+    var shape = shapeOverride || SHAPES[Math.floor(Math.random() * SHAPES.length)];
+    var sizeScale = (sizeOverride != null ? sizeOverride : randRange(0.7, 1.15));
+    particles.push({
+      x: x, y: y,
+      vx: randRange(-0.003, 0.003), vy: randRange(-0.003, 0.003),
+      shape: shape,
+      sizeScale: sizeScale,
+      radius: 0.052 + sizeScale * 0.05,   // unit-space collision radius, matched to how big it actually draws
+      rot: randRange(0, Math.PI * 2),
+      vrot: randRange(-0.03, 0.03),
+      color: color,
+      drag: randRange(0.88, 0.99),      // per-particle friction: some settle sooner, some slide further
+      restR: Math.pow(Math.random(), 1.6) * 0.85 + 0.08,  // biased toward mid/inner radii so the wall isn't the only resting place
+      sleeping: false
+    });
+    if (particles.length > 130) particles.shift();
+  }
+
+  function drawShape(kind, s, color) {
+    ctx.beginPath();
+    switch (kind) {
+      case 'circle':
+        ctx.fillStyle = color; ctx.globalAlpha = 0.92;
+        ctx.arc(0, 0, s * 0.42, 0, Math.PI * 2); ctx.fill();
+        break;
+      case 'ring':
+        ctx.strokeStyle = color; ctx.lineWidth = s * 0.16; ctx.globalAlpha = 0.85;
+        ctx.arc(0, 0, s * 0.42, 0, Math.PI * 2); ctx.stroke();
+        break;
+      case 'triangle':
+        ctx.fillStyle = color; ctx.globalAlpha = 0.9;
+        ctx.moveTo(0, -s * 0.5); ctx.lineTo(s * 0.46, s * 0.36); ctx.lineTo(-s * 0.46, s * 0.36);
+        ctx.closePath(); ctx.fill();
+        break;
+      case 'diamond':
+        ctx.fillStyle = color; ctx.globalAlpha = 0.9;
+        ctx.moveTo(0, -s * 0.5); ctx.lineTo(s * 0.32, 0); ctx.lineTo(0, s * 0.5); ctx.lineTo(-s * 0.32, 0);
+        ctx.closePath(); ctx.fill();
+        break;
+      case 'bar':
+        ctx.fillStyle = color; ctx.globalAlpha = 0.88;
+        ctx.fillRect(-s * 0.5, -s * 0.12, s, s * 0.24);
+        break;
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // --- physics step: particles tumble toward gravityAngle, collide with wall and each other ---
+  function step(dt) {
+    var g = 0.0011;
+    var gx = Math.cos(gravityAngle) * g;
+    var gy = Math.sin(gravityAngle) * g;
+    var wallR = 0.94;
+    var asleep = !gravityChanged;
+
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      if (gravityChanged) p.sleeping = false;
+      if (asleep && p.sleeping) continue;
+
+      p.vx += gx; p.vy += gy;
+      p.vx *= p.drag; p.vy *= p.drag;
+      var vmag = Math.abs(p.vx) + Math.abs(p.vy);
+      if (vmag > 0.02) { var vscale = 0.02 / vmag; p.vx *= vscale; p.vy *= vscale; }
+      p.x += p.vx; p.y += p.vy;
+      p.rot += p.vrot;
+      p.vrot *= 0.9;
+
+      var d = Math.sqrt(p.x * p.x + p.y * p.y);
+      var effWall = wallR * p.restR;
+      if (d > effWall) {
+        var nx = p.x / d, ny = p.y / d;
+        var vn = p.vx * nx + p.vy * ny;
+        p.vx -= 1.5 * vn * nx;
+        p.vy -= 1.5 * vn * ny;
+        p.x = nx * effWall; p.y = ny * effWall;
+        p.vrot += randRange(-0.015, 0.015);
+        if (Math.abs(vn) > 0.004) chime(Math.abs(vn) * 20);
+      }
+    }
+
+    // pairwise separation: run several solver passes so overlaps actually resolve
+    // instead of merely being nudged once (which is what caused visible clumping).
+    // This is pure position correction — it never adds velocity — so resolving
+    // overlaps can never itself keep the system from going still.
+    var passes = 5;
+    for (var pass = 0; pass < passes; pass++) {
+      var moved = false;
+      for (var a = 0; a < particles.length; a++) {
+        for (var b = a + 1; b < particles.length; b++) {
+          var pa = particles[a], pb = particles[b];
+          if (pa.sleeping && pb.sleeping) continue;   // both settled: leave them exactly as they are
+          var dx = pb.x - pa.x, dy = pb.y - pa.y;
+          var dist = Math.sqrt(dx * dx + dy * dy) || 0.0001;
+          var minD = (pa.radius + pb.radius) * 1.06;
+          if (dist < minD) {
+            moved = true;
+            var push = (minD - dist) * 0.52;
+            var ux = dx / dist, uy = dy / dist;
+            if (pa.sleeping && !pb.sleeping) {
+              pb.x += ux * push * 2; pb.y += uy * push * 2;
+            } else if (pb.sleeping && !pa.sleeping) {
+              pa.x -= ux * push * 2; pa.y -= uy * push * 2;
+            } else {
+              pa.x -= ux * push; pa.y -= uy * push;
+              pb.x += ux * push; pb.y += uy * push;
+            }
+          }
+        }
+      }
+      if (!moved) break;
+    }
+
+    // sleep check: once gravity direction is steady and a particle has nearly
+    // stopped, freeze it in place so the pattern actually holds still. After enough
+    // settled frames, force everything asleep as a hard floor against any residual
+    // low-amplitude jitter that never quite dips under the speed threshold.
+    if (!gravityChanged) {
+      framesSinceChange++;
+      var forceSleep = framesSinceChange > 240;  // ~4s at 60fps of settling time
+      for (var i2 = 0; i2 < particles.length; i2++) {
+        var p2 = particles[i2];
+        var speed = Math.abs(p2.vx) + Math.abs(p2.vy) + Math.abs(p2.vrot) * 0.05;
+        if (speed < 0.0012 || forceSleep) {
+          p2.vx = 0; p2.vy = 0; p2.vrot = 0; p2.sleeping = true;
+        }
+      }
+    } else {
+      framesSinceChange = 0;
+    }
+    gravityChanged = false;
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, size, size);
+    var grad = ctx.createRadialGradient(size * 0.5, size * 0.5, 0, size * 0.5, size * 0.5, R);
+    grad.addColorStop(0, 'rgba(255,255,255,.05)');
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(size / 2, size / 2, R, 0, Math.PI * 2); ctx.fill();
+
+    var N = sectorCount();
+    var sectorAngle = (Math.PI * 2) / N;
+    var maxR = R * 0.94;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, R, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.translate(size / 2, size / 2);
+
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      var x = p.x * maxR, y = p.y * maxR;
+      var s = 14 + p.sizeScale * (R * 0.15);
+      var color = COLORS[p.color];
+      var loopN = symmetryMode === 'mirror' ? 1 : N;
+
+      for (var k = 0; k < loopN; k++) {
+        if (symmetryMode !== 'mirror') {
+          ctx.save();
+          ctx.rotate(k * sectorAngle);
+          ctx.translate(x, y);
+          ctx.rotate(p.rot);
+          drawShape(p.shape, s, color);
+          ctx.restore();
+        }
+
+        if (symmetryMode !== 'rotate') {
+          ctx.save();
+          ctx.rotate(k * sectorAngle);
+          ctx.scale(1, -1);
+          ctx.translate(x, y);
+          ctx.rotate(-p.rot);
+          drawShape(p.shape, s, color);
+          ctx.restore();
+        }
+      }
+    }
+    ctx.restore();
+
+    var glint = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, R * 0.5);
+    glint.addColorStop(0, 'rgba(255,255,255,.06)');
+    glint.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = glint;
+    ctx.beginPath(); ctx.arc(size / 2, size / 2, R, 0, Math.PI * 2); ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, R - 0.75, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,.08)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+
+  function loop() {
+    step();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  function pointFromEvent(evt) {
+    var rect = canvas.getBoundingClientRect();
+    var clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+    var clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+    var x = (clientX - rect.left - rect.width / 2) / (rect.width / 2 * 0.94);
+    var y = (clientY - rect.top - rect.height / 2) / (rect.height / 2 * 0.94);
+    var d = Math.sqrt(x * x + y * y);
+    if (d > 1) { x /= d; y /= d; }
+    return { x: x, y: y };
+  }
+
+  canvas.addEventListener('pointerdown', function (evt) {
+    evt.preventDefault();
+    if (particles.length >= MAX_PARTICLES) {
+      flashHint('the scope is full — try Clear or turn the knob');
+      return;
+    }
+    var p = pointFromEvent(evt);
+    var shape = currentShape === 'random' ? null : currentShape;
+    addParticle(p.x, p.y, currentColor, shape, currentSize);
+    gravityChanged = true;
+  });
+
+  var MAX_PARTICLES = 70;   // keeps the disc from ever visually overloading
+  var hintEl = document.getElementById('hintText');
+  var defaultHint = hintEl.textContent;
+  var hintTimer = null;
+  function flashHint(msg) {
+    hintEl.textContent = msg;
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(function () { hintEl.textContent = defaultHint; }, 1800);
+  }
+
+  function findOpenSpot() {
+    // try a handful of random candidates, keep the one farthest from existing particles
+    var best = null, bestScore = -1;
+    for (var attempt = 0; attempt < 10; attempt++) {
+      var ang = randRange(0, Math.PI * 2), rad = randRange(0, 0.85);
+      var x = Math.cos(ang) * rad, y = Math.sin(ang) * rad;
+      var minDist = Infinity;
+      for (var i = 0; i < particles.length; i++) {
+        var dx = particles[i].x - x, dy = particles[i].y - y;
+        var d = dx * dx + dy * dy;
+        if (d < minDist) minDist = d;
+      }
+      if (minDist > bestScore) { bestScore = minDist; best = { x: x, y: y }; }
+    }
+    return best;
+  }
+
+  scatterBtn.addEventListener('click', function () {
+    if (particles.length >= MAX_PARTICLES) {
+      flashHint('the scope is full — try Clear or turn the knob');
+      return;
+    }
+    var room = MAX_PARTICLES - particles.length;
+    var n = Math.min(room, 4 + Math.floor(Math.random() * 4));
+    for (var i = 0; i < n; i++) {
+      var spot = findOpenSpot();
+      var shape = currentShape === 'random' ? null : currentShape;
+      var size = currentSize * randRange(0.75, 1.05);
+      addParticle(spot.x, spot.y, Math.floor(Math.random() * COLORS.length), shape, size);
+    }
+    gravityChanged = true;
+  });
+
+  clearBtn.addEventListener('click', function () {
+    particles = [];
+  });
+
+  swatches.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      swatches.forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+      btn.setAttribute('aria-pressed', 'true');
+      currentColor = parseInt(btn.getAttribute('data-color'), 10);
+    });
+  });
+
+  // --- knob: drag (mouse/touch) to set tilt direction; small movements = real angle changes ---
+  var dragging = false;
+  var dragCenter = null;
+
+  function knobPointFromEvent(evt) {
+    var rect = knob.getBoundingClientRect();
+    var clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+    var clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+    return {
+      x: clientX - (rect.left + rect.width / 2),
+      y: clientY - (rect.top + rect.height / 2)
+    };
+  }
+
+  function setKnobFromAngle(rad) {
+    knobAngle = rad * 180 / Math.PI;
+    knob.style.setProperty('--knob-angle', knobAngle + 'deg');
+    knob.setAttribute('aria-valuenow', Math.round(knobAngle));
+    // knob visual angle (0 = up) maps directly to gravity direction in tube space
+    gravityAngle = rad - Math.PI / 2;
+    gravityChanged = true;
+  }
+
+  knob.addEventListener('pointerdown', function (evt) {
+    dragging = true;
+    knob.setPointerCapture(evt.pointerId);
+  });
+  window.addEventListener('pointermove', function (evt) {
+    if (!dragging) return;
+    var p = knobPointFromEvent(evt);
+    var rad = Math.atan2(p.x, -p.y); // 0 = up, clockwise positive
+    setKnobFromAngle(rad);
+  });
+  window.addEventListener('pointerup', function () { dragging = false; });
+
+  // keyboard accessibility: arrow keys nudge the tilt in small, controlled steps
+  knob.addEventListener('keydown', function (evt) {
+    var step = 6 * Math.PI / 180;
+    if (evt.key === 'ArrowRight' || evt.key === 'ArrowUp') {
+      setKnobFromAngle(knobAngle * Math.PI / 180 + step); evt.preventDefault();
+    } else if (evt.key === 'ArrowLeft' || evt.key === 'ArrowDown') {
+      setKnobFromAngle(knobAngle * Math.PI / 180 - step); evt.preventDefault();
+    }
+  });
+
+  var THEMES = {
+    navy:     { hi: '#16283A', lo: '#0A141E' },
+    plum:     { hi: '#3A1F3E', lo: '#170B1C' },
+    forest:   { hi: '#163227', lo: '#0A1712' },
+    charcoal: { hi: '#22262B', lo: '#0D0F12' },
+    midnight: { hi: '#1A2440', lo: '#080B1A' },
+    rose:     { hi: '#3E1F2C', lo: '#1B0B12' },
+    amber:    { hi: '#3E2A14', lo: '#1C1006' },
+    teal:     { hi: '#123832', lo: '#061A17' }
+  };
+  var themeSelect = document.getElementById('themeSelect');
+  themeSelect.addEventListener('change', function () {
+    var t = THEMES[themeSelect.value] || THEMES.navy;
+    document.documentElement.style.setProperty('--stage-hi', t.hi);
+    document.documentElement.style.setProperty('--stage-lo', t.lo);
+  });
+
+  var symmetrySelect = document.getElementById('symmetrySelect');
+
+  var soundToggle = document.getElementById('soundToggle');
+  var soundOn = false;
+  var audioCtx = null;
+  var lastChime = 0;
+  soundToggle.addEventListener('change', function () {
+    soundOn = soundToggle.checked;
+    if (soundOn && !audioCtx) {
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+      catch (e) { soundOn = false; soundToggle.checked = false; }
+    }
+  });
+  function chime(strength) {
+    if (!soundOn || !audioCtx) return;
+    var now = audioCtx.currentTime;
+    if (now - lastChime < 0.05) return;   // throttle so a dense pack doesn't buzz
+    lastChime = now;
+    var freq = 480 + Math.random() * 420;
+    var osc = audioCtx.createOscillator();
+    var gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    var vol = Math.min(0.05, 0.015 + strength * 0.02);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(vol, now + 0.006);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(now); osc.stop(now + 0.2);
+  }
+
+  var saveBtn = document.getElementById('saveBtn');
+  saveBtn.addEventListener('click', function () {
+    var out = document.createElement('canvas');
+    out.width = canvas.width; out.height = canvas.height;
+    var octx = out.getContext('2d');
+    var t = THEMES[themeSelect.value] || THEMES.navy;
+    var bg = octx.createRadialGradient(out.width * 0.32, out.height * 0.28, 0, out.width * 0.5, out.height * 0.5, out.width * 0.6);
+    bg.addColorStop(0, t.hi);
+    bg.addColorStop(1, t.lo);
+    octx.fillStyle = bg;
+    octx.fillRect(0, 0, out.width, out.height);
+    octx.drawImage(canvas, 0, 0);
+    var link = document.createElement('a');
+    link.download = 'collidoscope-' + Date.now() + '.png';
+    link.href = out.toDataURL('image/png');
+    link.click();
+  });
+
+  sectorSelect.addEventListener('change', draw);
+
+  symmetrySelect.addEventListener('change', function () {
+    symmetryMode = symmetrySelect.value;
+  });
+
+  var shapeSelect = document.getElementById('shapeSelect');
+  var sizeRange = document.getElementById('sizeRange');
+  shapeSelect.addEventListener('change', function () { currentShape = shapeSelect.value; });
+  sizeRange.addEventListener('input', function () { currentSize = parseFloat(sizeRange.value); });
+
+  window.addEventListener('resize', resize);
+  resize();
+
+  // seed a starting handful of particles so the page isn't empty
+  for (var i = 0; i < 6; i++) {
+    var ang = randRange(0, Math.PI * 2), rad = randRange(0, 0.7);
+    addParticle(Math.cos(ang) * rad, Math.sin(ang) * rad, i % 4);
+  }
+  setKnobFromAngle(0);
+  loop();
+})();
+</script>
+</body>
+</html>
