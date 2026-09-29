@@ -1,0 +1,1257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Digitwalker</title>
+<meta name="description" content="Numbers go for a walk. Every digit is a step length and the path turns after each step. Type an expression, watch it draw, and race numbers against each other.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='16' fill='%230E1A26'/%3E%3Cpath d='M16 16h4v-5h-8v9h11v-13h-15' fill='none' stroke='%237FE7DC' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400..900&display=swap" rel="stylesheet">
+<!-- arbitrary-precision decimals (sqrt, ln, exp, trig, pi ...) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/decimal.js/10.4.3/decimal.min.js"></script>
+<style>
+:root{
+  --deep:#0E1A26;
+  --deep2:#0A141E;
+  --paper:#ECEFF1;
+  --ink:#16222E;
+  --muted:#506070;
+  --rule:#C3CCD3;
+  --signal:#B01E56;
+  --signal-bright:#FF6E9F;
+  --on-deep:#EAF0F5;
+  --on-deep-muted:#9FB0C0;
+  --sans:"Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none !important}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;min-height:100svh;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);
+  display:flex;flex-direction:column;
+}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--signal);outline-offset:3px;border-radius:3px}
+
+header{
+  padding:1.1rem clamp(1rem,4vw,2rem) .6rem;
+  display:flex;align-items:baseline;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+}
+.brand{display:flex;align-items:baseline;gap:.65rem}
+h1{margin:0;font:800 1.35rem/1 var(--sans);letter-spacing:-.02em}
+.tag{font:400 .875rem/1 var(--sans);color:var(--muted)}
+header a.home{font:500 .875rem var(--sans);color:var(--muted);text-decoration:none;border-bottom:1px solid var(--rule)}
+header a.home:hover{color:var(--signal);border-color:var(--signal)}
+
+main{
+  flex:1;display:flex;align-items:flex-start;justify-content:center;
+  padding:1rem clamp(1rem,4vw,2rem) 2rem;
+}
+.layout{
+  display:grid;grid-template-columns:minmax(0,1fr) 19rem;gap:clamp(1.5rem,4vw,3rem);
+  align-items:start;max-width:72rem;width:100%;
+}
+.stage-col{display:flex;flex-direction:column;align-items:center;gap:1.5rem;min-width:0}
+
+/* --- plots --- */
+.plots{
+  display:grid;gap:1rem;width:100%;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));
+}
+.plots[data-n="1"]{grid-template-columns:1fr;max-width:32rem}
+.plots[data-n="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.card{
+  background:#fff;border-radius:1.25rem;padding:.9rem;
+  box-shadow:inset 0 0 0 1.5px var(--rule);
+  display:flex;flex-direction:column;gap:.6rem;min-width:0;
+}
+.card-head{display:flex;align-items:baseline;justify-content:space-between;gap:.75rem}
+.card-title{
+  font:700 .9rem var(--sans);color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;
+}
+.card-count{font:600 .75rem var(--mono);color:var(--muted);flex-shrink:0}
+canvas{display:block;width:100%;aspect-ratio:1;border-radius:.8rem;background:#fff}
+.stats{display:flex;justify-content:space-between;gap:.5rem;flex-wrap:wrap;font:500 .75rem var(--mono);color:var(--muted)}
+.stats b{color:var(--ink);font-weight:700}
+.digits{
+  font:400 .72rem/1.45 var(--mono);color:var(--muted);word-break:break-all;
+  max-height:4.4rem;overflow:auto;padding:.1rem .15rem;
+}
+.digits .done{color:var(--ink);font-weight:600}
+.card-foot{display:flex;justify-content:flex-end;gap:.4rem;flex-wrap:wrap}
+.empty{
+  width:100%;max-width:32rem;text-align:center;padding:2.5rem 1rem;
+  font:400 .9rem var(--sans);color:var(--muted);
+  background:#fff;border-radius:1.25rem;box-shadow:inset 0 0 0 1.5px var(--rule);
+}
+.note{font:400 .8125rem/1.5 var(--sans);color:var(--muted);text-align:center;max-width:38rem;margin:0}
+
+/* --- race --- */
+.race{
+  width:100%;max-width:40rem;background:#fff;border-radius:1.25rem;padding:1rem 1.15rem;
+  box-shadow:inset 0 0 0 1.5px var(--rule);display:flex;flex-direction:column;gap:.6rem;
+}
+.race h2{margin:0;font:700 .8125rem var(--sans);letter-spacing:.02em;color:var(--muted)}
+.race-row{display:grid;grid-template-columns:1.1rem minmax(3rem,8rem) 1fr 4.6rem;gap:.6rem;align-items:center;cursor:pointer}
+.race-bet{margin:0;accent-color:var(--signal-bright);cursor:pointer}
+.race-note{margin:0;font:400 .8125rem/1.5 var(--sans);color:var(--muted)}
+.marathon{display:flex;flex-direction:column;align-items:center;gap:.45rem;text-align:center}
+.marathon-hint{font:400 .8125rem/1.4 var(--sans);color:var(--muted)}
+button.on{background:transparent;color:var(--muted);box-shadow:inset 0 0 0 1.5px var(--rule)}
+button.on:hover{background:rgba(22,34,46,.06);color:var(--ink)}
+.race-label{font:650 .8rem var(--sans);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.race-bar{height:.6rem;background:var(--paper);border-radius:1rem;overflow:hidden}
+.race-bar i{display:block;height:100%;width:0;background:var(--deep);border-radius:1rem}
+.race-row.lead .race-bar i{background:var(--signal-bright)}
+.race-val{font:600 .75rem var(--mono);color:var(--muted);text-align:right}
+.race-win{margin:0;font:700 .9rem var(--sans);color:var(--ink);min-height:1.2em}
+
+/* --- poem --- */
+.poem{max-width:36rem;text-align:center;display:flex;flex-direction:column;gap:.7rem;align-items:center;padding:.5rem 0}
+.poem h2{margin:0;font:800 1.05rem var(--sans);letter-spacing:-.01em}
+.verse{margin:0;font:400 1rem/1.75 var(--sans);color:#3A4856}
+.fine{margin:0;font:400 .8125rem/1.5 var(--sans);color:var(--muted)}
+
+/* --- support --- */
+.support{
+  width:100%;max-width:40rem;background:#fff;border-radius:1.25rem;padding:1.1rem 1.25rem;
+  box-shadow:inset 0 0 0 1.5px var(--rule);display:flex;flex-direction:column;gap:.8rem;align-items:center;text-align:center;
+}
+.support p{margin:0;font:400 .9rem/1.55 var(--sans);color:#3A4856}
+.support-links{display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center}
+.btn-link{
+  display:inline-flex;align-items:center;gap:.4rem;font:650 .875rem var(--sans);
+  border-radius:2rem;padding:.6rem 1.1rem;text-decoration:none;
+  background:var(--deep);color:var(--on-deep);transition:transform .12s ease, background .15s ease;
+}
+.btn-link:hover{background:#16283A}
+.btn-link:active{transform:scale(.96)}
+.btn-link.primary{background:var(--signal-bright);color:var(--deep)}
+.btn-link.primary:hover{background:#FF8AB2}
+.btn-link.ghost{background:transparent;color:var(--muted);box-shadow:inset 0 0 0 1.5px var(--rule)}
+.btn-link.ghost:hover{background:rgba(22,34,46,.06);color:var(--ink)}
+
+/* --- buttons --- */
+button{
+  font:650 .9rem var(--sans);border:none;border-radius:2rem;padding:.62rem 1.15rem;cursor:pointer;
+  background:var(--deep);color:var(--on-deep);
+  transition:transform .12s ease, background .15s ease;
+}
+button:hover{background:#16283A}
+button:active{transform:scale(.96)}
+button.primary{background:var(--signal-bright);color:var(--deep)}
+button.primary:hover{background:#FF8AB2}
+button.ghost{background:transparent;color:var(--muted);box-shadow:inset 0 0 0 1.5px var(--rule)}
+button.ghost:hover{background:rgba(22,34,46,.06);color:var(--ink)}
+button.full{width:100%}
+button.small{padding:.35rem .8rem;font-size:.75rem}
+button:disabled{opacity:.4;cursor:not-allowed}
+
+/* --- side panel --- */
+.panel{display:flex;flex-direction:column;gap:1.25rem}
+.panel-group{
+  background:#fff;border-radius:1.25rem;padding:1.1rem 1.15rem;
+  box-shadow:inset 0 0 0 1.5px var(--rule);
+  display:flex;flex-direction:column;gap:.7rem;
+}
+.panel-title{margin:0 0 .1rem;font:700 .8125rem var(--sans);letter-spacing:.02em;color:var(--muted)}
+.row-ctrl{display:flex;align-items:center;justify-content:space-between;gap:.75rem}
+.row-ctrl label{font:600 .8125rem var(--sans);color:var(--muted);flex-shrink:0}
+.row-ctrl select{
+  font:650 .875rem var(--sans);color:var(--ink);background:var(--paper);border:none;border-radius:1.5rem;
+  padding:.4rem .8rem;cursor:pointer;max-width:11rem;
+}
+.row-ctrl input[type=range]{width:7rem;accent-color:var(--signal-bright);cursor:pointer}
+.speed-val{font:600 .75rem var(--mono);color:var(--muted);width:3.2rem;text-align:right}
+.btn-row{display:flex;gap:.6rem}
+.btn-row button{flex:1}
+.toggle{
+  display:flex;align-items:center;gap:.5rem;
+  background:var(--paper);border-radius:1.5rem;padding:.5rem 1rem;
+  box-shadow:inset 0 0 0 1.5px var(--rule);cursor:pointer;
+  font:600 .8125rem var(--sans);color:var(--muted);user-select:none;width:fit-content;
+}
+.toggle input{accent-color:var(--signal-bright);cursor:pointer;width:1rem;height:1rem}
+.toggle:has(input:checked){color:var(--ink)}
+.status{margin:0;font:500 .78rem/1.4 var(--sans);color:var(--muted);min-height:1.1em}
+
+/* --- expressions --- */
+.expr-list{display:flex;flex-direction:column;gap:.45rem}
+.expr-row{display:flex;gap:.4rem;align-items:center}
+.expr-row input{
+  flex:1;min-width:0;font:500 .9rem var(--mono);color:var(--ink);
+  background:var(--paper);border:none;border-radius:1rem;padding:.6rem .85rem;
+  box-shadow:inset 0 0 0 1.5px var(--rule);
+}
+.expr-row input:focus{background:#fff;box-shadow:inset 0 0 0 2px var(--signal-bright);outline:none}
+.expr-row input[aria-invalid="true"]{box-shadow:inset 0 0 0 2px var(--signal)}
+.expr-row .x{
+  width:2rem;height:2rem;padding:0;flex-shrink:0;border-radius:50%;
+  background:transparent;color:var(--muted);box-shadow:inset 0 0 0 1.5px var(--rule);font-size:1rem;line-height:1;
+}
+.expr-row .x:hover{background:rgba(22,34,46,.06);color:var(--ink)}
+.errors{margin:0;padding:0;list-style:none;font:500 .78rem/1.4 var(--sans);color:var(--signal)}
+.errors:empty{display:none}
+.chips{display:flex;flex-wrap:wrap;gap:.35rem;justify-content:center}
+.panel-group .chips{justify-content:flex-start}
+.chip{
+  padding:.28rem .7rem;font:600 .78rem var(--sans);
+  background:var(--paper);color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--rule);
+}
+.chip:hover{background:#dfe5e9}
+.chip.accent{background:var(--deep);color:var(--on-deep);box-shadow:none}
+.chip.accent:hover{background:#16283A}
+
+/* --- keypad --- */
+.keypad{display:grid;grid-template-columns:repeat(5,1fr);gap:.4rem}
+.key{
+  padding:.58rem 0;border-radius:.7rem;font:650 .85rem var(--sans);
+  background:var(--paper);color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--rule);
+}
+.key:hover{background:#dfe5e9}
+.key.fn{font-size:.8rem;color:var(--muted)}
+.key.op{background:var(--deep);color:var(--on-deep);box-shadow:none}
+.key.op:hover{background:#16283A}
+.key.act{color:var(--signal)}
+.key.go{grid-column:span 2;background:var(--signal-bright);color:var(--deep);box-shadow:none}
+.key.go:hover{background:#FF8AB2}
+
+footer{text-align:center;padding:0 1rem 1.5rem;font:400 .8125rem var(--sans);color:var(--muted)}
+footer a{color:var(--muted);text-decoration-color:rgba(80,96,112,.4)}
+footer a:hover{color:var(--signal)}
+
+@media (max-width:56rem){
+  .layout{grid-template-columns:1fr;justify-items:center;max-width:32rem}
+  .panel{width:100%;max-width:26rem;order:-1}
+}
+@media (max-width:36rem){
+  .plots[data-n="2"]{grid-template-columns:1fr}
+}
+@media (max-width:26rem){
+  h1{font:800 1.15rem/1 var(--sans)}
+  .panel-group{padding:1rem}
+  .race-row{grid-template-columns:1.1rem minmax(3rem,5rem) 1fr 4rem}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>Digitwalker</h1>
+    <span class="tag">numbers go for a walk</span>
+  </div>
+  <a class="home" href="https://phymanshu.github.io/#playground">← back to site</a>
+</header>
+
+<main>
+  <div class="layout">
+
+    <div class="stage-col">
+      <div class="plots" id="plots" data-n="0" aria-live="polite"></div>
+
+      <div class="marathon">
+        <button id="marathonBtn" type="button" aria-pressed="false">🏁 Run a Numarathon</button>
+        <span class="marathon-hint">Bet on your number: add a few and see whose walk travels farthest.</span>
+      </div>
+      <section class="race" id="race" hidden aria-label="Numarathon: which number travels farthest"></section>
+
+      <p class="note" id="note">Every digit is a step length: walk that far, turn, repeat. Lines start dark and get lighter towards the end of the number. Distances are in units (u), where 1 u is the step for the digit 1.</p>
+
+      <section class="poem" aria-label="Rational and irrational numbers">
+        <h2>Two kinds of walkers</h2>
+        <p class="verse">
+          Rational numbers have found their purpose. Their digits fall into a rhythm and repeat the work they love, again and again, content inside their loop.<br><br>
+          Irrational numbers never settle. Their digits never repeat, so the path never quite comes home. It keeps wandering into new ground, as if looking for something.
+        </p>
+        <div class="chips" id="presets"></div>
+        <p class="fine">Whether the digits of π, e or √2 are truly “random” is still an open question in mathematics. The walk just lets you look.</p>
+      </section>
+
+      <section class="support" aria-label="Support this project">
+        <p>If Digitwalker added a little wonder to your day, or a good moment to your classroom, please consider supporting it. It keeps this playground free and growing.</p>
+        <div class="support-links">
+          <a class="btn-link primary" id="coffeeLink" href="#" target="_blank" rel="noopener">☕ Buy me a coffee</a>
+          <a class="btn-link ghost" id="shopLink" href="#" target="_blank" rel="noopener" hidden>Posters &amp; prints</a>
+          <a class="btn-link ghost" id="classLink" href="#" target="_blank" rel="noopener" hidden>Classroom pack for teachers</a>
+        </div>
+      </section>
+    </div>
+
+    <div class="panel">
+
+      <div class="panel-group">
+        <h2 class="panel-title">Expressions</h2>
+        <div class="expr-list" id="exprList"></div>
+        <ul class="errors" id="errors" role="alert"></ul>
+        <div class="btn-row">
+          <button class="primary" id="drawBtn" type="button">Draw</button>
+          <button class="ghost" id="addBtn" type="button">+ Add another</button>
+        </div>
+        <div class="chips" id="chips" aria-label="Examples"></div>
+      </div>
+
+      <div class="panel-group">
+        <h2 class="panel-title">Keypad</h2>
+        <div class="keypad" id="keypad" role="group" aria-label="Calculator keypad"></div>
+      </div>
+
+      <div class="panel-group">
+        <h2 class="panel-title">Walk</h2>
+        <div class="row-ctrl">
+          <label for="digitsSel">Digits</label>
+          <select id="digitsSel">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100" selected>100</option>
+            <option value="250">250</option>
+            <option value="500">500</option>
+            <option value="1000">1000</option>
+          </select>
+        </div>
+        <div class="row-ctrl">
+          <label for="speedRange">Speed</label>
+          <input type="range" id="speedRange" min="2" max="80" step="1" value="12">
+          <span class="speed-val" id="speedVal">12/s</span>
+        </div>
+        <div class="row-ctrl">
+          <label for="turnSel">Turn</label>
+          <select id="turnSel">
+            <option value="90" selected>90°</option>
+            <option value="60">60°</option>
+            <option value="120">120°</option>
+            <option value="45">45°</option>
+            <option value="72">72°</option>
+            <option value="137.5077640500378">Golden angle</option>
+          </select>
+        </div>
+        <div class="row-ctrl">
+          <label for="dirSel">Direction</label>
+          <select id="dirSel">
+            <option value="ccw" selected>Anticlockwise</option>
+            <option value="cw">Clockwise</option>
+          </select>
+        </div>
+        <div class="row-ctrl">
+          <label for="cmapSel">Colours</label>
+          <select id="cmapSel">
+            <option value="viridis" selected>Viridis</option>
+            <option value="plasma">Plasma</option>
+            <option value="inferno">Inferno</option>
+          </select>
+        </div>
+        <label class="toggle"><input type="checkbox" id="skipInt"><span>Skip integer part</span></label>
+        <label class="toggle"><input type="checkbox" id="axesToggle" checked><span>Show axes</span></label>
+        <div class="btn-row">
+          <button class="ghost" id="replayBtn" type="button">Replay</button>
+          <button class="ghost" id="finishBtn" type="button">Finish</button>
+        </div>
+      </div>
+
+      <div class="panel-group">
+        <h2 class="panel-title">Share</h2>
+        <div class="btn-row">
+          <button class="ghost" id="linkBtn" type="button">Copy link</button>
+          <button class="ghost" id="videoBtn" type="button">Save animation</button>
+        </div>
+        <p class="status" id="status" aria-live="polite"></p>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<footer>
+  Part of Himanshu Sharma's <a href="https://phymanshu.github.io/#playground">science playground</a>
+</footer>
+
+<script>
+(function () {
+'use strict';
+
+/* ======== EDIT THESE: your support / shop links. Leave '' to hide a link. ======== */
+var LINKS = {
+  coffee:    'https://buymeacoffee.com/shymanshu',
+  shop:      '',   // e.g. your Etsy / Redbubble / Printful store
+  classroom: ''    // e.g. your Gumroad / Teachers Pay Teachers page
+};
+/* ================================================================================ */
+
+var $ = function (id) { return document.getElementById(id); };
+var plots = $('plots'), exprList = $('exprList'), errorsEl = $('errors'), raceEl = $('race'), statusEl = $('status');
+var digitsSel = $('digitsSel'), speedRange = $('speedRange'), speedVal = $('speedVal');
+var turnSel = $('turnSel'), dirSel = $('dirSel'), cmapSel = $('cmapSel');
+var skipInt = $('skipInt'), axesToggle = $('axesToggle');
+var drawBtn = $('drawBtn'), addBtn = $('addBtn'), replayBtn = $('replayBtn'), finishBtn = $('finishBtn');
+var linkBtn = $('linkBtn'), videoBtn = $('videoBtn'), marathonBtn = $('marathonBtn');
+var numarathon = false, betIdx = -1;
+
+var MAX_EXPR = 6;
+var GUARD = 15;               // extra digits computed beyond what is drawn
+var FONT = '"Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
+var DPR = Math.min(window.devicePixelRatio || 1, 2.5);
+var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* support links */
+[['coffee', 'coffeeLink'], ['shop', 'shopLink'], ['classroom', 'classLink']].forEach(function (p) {
+  var a = $(p[1]);
+  if (LINKS[p[0]]) { a.href = LINKS[p[0]]; a.hidden = false; } else { a.hidden = true; }
+});
+
+if (typeof Decimal === 'undefined') {
+  errorsEl.innerHTML = '<li>The maths library (decimal.js) failed to load. Check your connection and reload.</li>';
+  drawBtn.disabled = true;
+  return;
+}
+
+/* ================= colour maps (matplotlib-style, dark -> light) ================= */
+var CMAPS = {
+  viridis: ['#440154','#482878','#3e4989','#31688e','#26828e','#1f9e89','#35b779','#6ece58','#b5de2b','#fde725'],
+  plasma:  ['#0d0887','#47039f','#7301a8','#9c179e','#bd3786','#d8576b','#ed7953','#fa9e3b','#fdc328','#f0f921'],
+  inferno: ['#000004','#1b0c41','#4a0c6b','#781c6d','#a52c60','#cf4446','#ed6925','#fb9b06','#f7d13d','#fcffa4']
+};
+function hexToRgb(h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
+var CMAP_RGB = {};
+Object.keys(CMAPS).forEach(function (k) { CMAP_RGB[k] = CMAPS[k].map(hexToRgb); });
+function cmapColor(name, t) {
+  var st = CMAP_RGB[name], pos = Math.max(0, Math.min(1, t)) * (st.length - 1);
+  var i = Math.min(st.length - 2, Math.floor(pos)), f = pos - i, a = st[i], b = st[i + 1];
+  return 'rgb(' + Math.round(a[0] + (b[0] - a[0]) * f) + ',' + Math.round(a[1] + (b[1] - a[1]) * f) + ',' + Math.round(a[2] + (b[2] - a[2]) * f) + ')';
+}
+
+/* ================= expression evaluator (arbitrary precision) ================= */
+function tokenize(src) {
+  src = src.replace(/[×·∙]/g, '*').replace(/÷/g, '/').replace(/[−–—]/g, '-')
+           .replace(/\*\*/g, '^').replace(/π/g, ' pi ').replace(/φ/g, ' phi ')
+           .replace(/√/g, ' sqrt ').replace(/∛/g, ' cbrt ');
+  var out = [], i = 0, m, rest;
+  while (i < src.length) {
+    var c = src[i];
+    if (/\s/.test(c)) { i++; continue; }
+    rest = src.slice(i);
+    if ((m = /^(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/.exec(rest))) { out.push({ t: 'num', v: m[0] }); i += m[0].length; continue; }
+    if ((m = /^(?:log10|log2|[a-zA-Z]+)/.exec(rest))) { out.push({ t: 'id', v: m[0].toLowerCase() }); i += m[0].length; continue; }
+    if ('+-*/^()!'.indexOf(c) >= 0) { out.push({ t: 'op', v: c }); i++; continue; }
+    throw new Error('unexpected "' + c + '"');
+  }
+  return out;
+}
+
+function evaluate(src, D) {
+  var toks = tokenize(src), p = 0;
+  var cache = {};
+  var CONST = {
+    pi:  function () { return D.acos(-1); },
+    e:   function () { return D.exp(1); },
+    phi: function () { return D.add(1, D.sqrt(5)).div(2); },
+    tau: function () { return D.acos(-1).times(2); }
+  };
+  var FUN = {
+    sqrt: function (x) { return x.sqrt(); },   cbrt: function (x) { return x.cbrt(); },
+    ln:   function (x) { return x.ln(); },     log:  function (x) { return x.log(10); },
+    log10: function (x) { return x.log(10); }, log2: function (x) { return x.log(2); },
+    exp:  function (x) { return x.exp(); },    abs:  function (x) { return x.abs(); },
+    sin:  function (x) { return x.sin(); },    cos:  function (x) { return x.cos(); },
+    tan:  function (x) { return x.tan(); },    asin: function (x) { return x.asin(); },
+    acos: function (x) { return x.acos(); },   atan: function (x) { return x.atan(); },
+    sinh: function (x) { return x.sinh(); },   cosh: function (x) { return x.cosh(); },
+    tanh: function (x) { return x.tanh(); }
+  };
+  function isOp(v) { return toks[p] && toks[p].t === 'op' && toks[p].v === v; }
+  function fact(x) {
+    if (!x.isInt() || x.isNeg()) throw new Error('! needs a whole number ≥ 0');
+    if (x.gt(1000)) throw new Error('factorial is limited to 1000!');
+    var r = new D(1);
+    for (var i = 2, n = x.toNumber(); i <= n; i++) r = r.times(i);
+    return r;
+  }
+  function parseExpr() {
+    var v = parseTerm();
+    while (isOp('+') || isOp('-')) {
+      var o = toks[p++].v, r = parseTerm();
+      v = o === '+' ? v.plus(r) : v.minus(r);
+    }
+    return v;
+  }
+  function parseTerm() {
+    var v = parseUnary();
+    for (;;) {
+      if (isOp('*')) { p++; v = v.times(parseUnary()); }
+      else if (isOp('/')) { p++; v = v.div(parseUnary()); }
+      else if (toks[p] && (toks[p].t === 'id' || isOp('('))) { v = v.times(parseUnary()); } // implicit: 2pi, 3(4+1)
+      else break;
+    }
+    return v;
+  }
+  function parseUnary() {
+    if (isOp('-')) { p++; return parseUnary().neg(); }
+    if (isOp('+')) { p++; return parseUnary(); }
+    return parsePower();
+  }
+  function parsePower() {
+    var b = parsePostfix();
+    if (isOp('^')) { p++; return b.pow(parseUnary()); }
+    return b;
+  }
+  function parsePostfix() {
+    var v = parseAtom();
+    while (isOp('!')) { p++; v = fact(v); }
+    return v;
+  }
+  function parseAtom() {
+    var t = toks[p];
+    if (!t) throw new Error('expression ended unexpectedly');
+    if (t.t === 'num') { p++; return new D(t.v); }
+    if (t.t === 'op' && t.v === '(') {
+      p++;
+      var v = parseExpr();
+      if (!isOp(')')) throw new Error('missing )');
+      p++;
+      return v;
+    }
+    if (t.t === 'id') {
+      p++;
+      if (CONST[t.v]) return cache[t.v] || (cache[t.v] = CONST[t.v]());
+      if (FUN[t.v]) {
+        var a;
+        if (isOp('(')) {
+          p++; a = parseExpr();
+          if (!isOp(')')) throw new Error('missing ) after ' + t.v);
+          p++;
+        } else {
+          a = parsePostfix();
+        }
+        return FUN[t.v](a);
+      }
+      throw new Error('unknown name "' + t.v + '"');
+    }
+    throw new Error('unexpected "' + t.v + '"');
+  }
+
+  if (!toks.length) throw new Error('empty expression');
+  var result = parseExpr();
+  if (p < toks.length) throw new Error('unexpected "' + toks[p].v + '"');
+  if (!result.isFinite()) throw new Error('result is not a finite real number');
+  return result;
+}
+
+function extractDigits(value, N, skipInteger) {
+  var s = value.abs().toFixed();                 // plain notation, trailing zeros trimmed
+  var parts = s.split('.'), ip = parts[0], fp = parts[1] || '';
+  var d = skipInteger ? fp : (ip === '0' ? '' : ip) + fp;
+  d = d.slice(0, N);
+  if (!d) throw new Error('no digits to draw (result is zero or a whole number with "skip integer part" on)');
+  return d;
+}
+
+/* ================= geometry & painting ================= */
+var cards = [];
+var progress = 0, lastT = 0, raf = 0, speedOverride = 0;
+
+function fmt(v) { return v < 10 ? v.toFixed(2) : v < 1000 ? v.toFixed(1) : v.toFixed(0); }
+function slug(s) { return s.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '').slice(0, 40) || 'walk'; }
+function currentTheta() {
+  return parseFloat(turnSel.value) * Math.PI / 180 * (dirSel.value === 'cw' ? -1 : 1);
+}
+function maxDigits() { return cards.reduce(function (m, c) { return Math.max(m, c.digits.length); }, 0); }
+
+function computePath(card) {
+  var n = card.digits.length, th = currentTheta();
+  var xs = new Float64Array(n + 1), ys = new Float64Array(n + 1), pre = new Float64Array(n + 1);
+  var x = 0, y = 0, h = 0;
+  for (var i = 0; i < n; i++) {
+    var len = card.digits.charCodeAt(i) - 48;
+    x += len * Math.cos(h); y += len * Math.sin(h);
+    xs[i + 1] = x; ys[i + 1] = y; pre[i + 1] = pre[i] + len;
+    h += th;
+  }
+  card.xs = xs; card.ys = ys; card.pre = pre;
+  card.finalDist = Math.hypot(xs[n], ys[n]);
+  card.finalPath = pre[n];
+  var minX = 0, maxX = 0, minY = 0, maxY = 0;     // origin always included
+  for (var j = 1; j <= n; j++) {
+    if (xs[j] < minX) minX = xs[j]; if (xs[j] > maxX) maxX = xs[j];
+    if (ys[j] < minY) minY = ys[j]; if (ys[j] > maxY) maxY = ys[j];
+  }
+  card.bbox = [minX, maxX, minY, maxY];
+}
+
+function recolor(card) {
+  var n = card.digits.length, name = cmapSel.value;
+  card.colors = new Array(n);
+  for (var i = 0; i < n; i++) card.colors[i] = cmapColor(name, i / n);   // same rule as the python: i / total
+}
+
+function fit(card, size) {
+  var b = card.bbox, w = b[1] - b[0], h = b[3] - b[2];
+  var pad = size * 0.07, span = Math.max(w, h);
+  var sc = span > 0 ? (size - 2 * pad) / span : 1;
+  return { sc: sc, ox: (size - w * sc) / 2 - b[0] * sc, oy: (size + h * sc) / 2 + b[2] * sc };   // y flipped on screen
+}
+
+function layout(card) {
+  var rect = card.canvas.getBoundingClientRect();
+  var size = rect.width || 300;
+  card.size = size;
+  card.canvas.width = Math.round(size * DPR);
+  card.canvas.height = Math.round(size * DPR);
+  card.ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  card.f = fit(card, size);
+}
+
+/* draws the walk (up to fractional progress `prog`) into a size x size square at the ctx origin */
+function paint(ctx, size, card, f, prog, o) {
+  var n = card.digits.length, xs = card.xs, ys = card.ys, sc = f.sc, ox = f.ox, oy = f.oy, ls = o.lwScale;
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, size, size);
+
+  if (o.axes) {
+    ctx.strokeStyle = '#B4BCC3'; ctx.lineWidth = 0.75 * ls;
+    var m = size * 0.03;
+    ctx.beginPath();
+    ctx.moveTo(m, oy); ctx.lineTo(size - m, oy);
+    ctx.moveTo(ox, m); ctx.lineTo(ox, size - m);
+    ctx.stroke();
+  }
+
+  var lw = (n <= 50 ? 2 : n <= 150 ? 1.6 : n <= 500 ? 1.1 : 0.8) * ls;
+  ctx.lineWidth = lw; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  var full = Math.min(Math.floor(prog), n), frac = Math.min(prog, n) - full, i;
+
+  for (i = 0; i < full; i++) {
+    if (xs[i] === xs[i + 1] && ys[i] === ys[i + 1]) continue;
+    ctx.strokeStyle = card.colors[i];
+    ctx.beginPath();
+    ctx.moveTo(ox + xs[i] * sc, oy - ys[i] * sc);
+    ctx.lineTo(ox + xs[i + 1] * sc, oy - ys[i + 1] * sc);
+    ctx.stroke();
+  }
+  var wx = xs[full], wy = ys[full];
+  if (full < n && frac > 0) {
+    wx = xs[full] + (xs[full + 1] - xs[full]) * frac;
+    wy = ys[full] + (ys[full + 1] - ys[full]) * frac;
+    ctx.strokeStyle = card.colors[full];
+    ctx.beginPath();
+    ctx.moveTo(ox + xs[full] * sc, oy - ys[full] * sc);
+    ctx.lineTo(ox + wx * sc, oy - wy * sc);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = '#0a7d0a';                                   // start point
+  ctx.beginPath(); ctx.arc(ox, oy, 3.2 * ls, 0, Math.PI * 2); ctx.fill();
+
+  if (o.tip && prog < n) {                                     // moving tip while animating
+    ctx.fillStyle = card.colors[Math.min(full, n - 1)];
+    ctx.beginPath(); ctx.arc(ox + wx * sc, oy - wy * sc, lw + 1.6, 0, Math.PI * 2); ctx.fill();
+  }
+  return { wx: wx, wy: wy };
+}
+
+function setText(el, s) { if (el.textContent !== s) el.textContent = s; }
+
+function render(card, prog) {
+  var n = card.digits.length;
+  var res = paint(card.ctx, card.size, card, card.f, prog, { lwScale: 1, tip: true, axes: axesToggle.checked });
+  var full = Math.min(Math.floor(prog), n), frac = Math.min(prog, n) - full;
+  card.tipDist = Math.hypot(res.wx, res.wy);
+  card.tipPath = card.pre[full] + (full < n ? frac * (card.digits.charCodeAt(full) - 48) : 0);
+  setText(card.distEl, fmt(card.tipDist));
+  setText(card.plenEl, fmt(card.tipPath));
+  if (full !== card.shown) {
+    card.shown = full;
+    card.doneEl.textContent = card.digits.slice(0, full);
+    card.restEl.textContent = card.digits.slice(full);
+    card.countEl.textContent = full + ' / ' + n;
+  }
+}
+
+function renderAll() {
+  cards.forEach(function (c) { render(c, progress); });
+  updateRace(progress >= maxDigits());
+}
+
+/* ================= Numarathon (optional race, switched on with a button) ================= */
+function setMarathonUI() {
+  marathonBtn.textContent = numarathon ? '🏁 Hide the Numarathon' : '🏁 Run a Numarathon';
+  marathonBtn.classList.toggle('on', numarathon);
+  marathonBtn.setAttribute('aria-pressed', numarathon ? 'true' : 'false');
+}
+
+function buildRace() {
+  raceEl.innerHTML = '';
+  betIdx = -1;
+  if (!numarathon) { raceEl.hidden = true; return; }
+  raceEl.hidden = false;
+  var h = document.createElement('h2');
+  h.textContent = 'Numarathon: bet on your number';
+  raceEl.appendChild(h);
+  if (cards.length < 2) {
+    var m = document.createElement('p');
+    m.className = 'race-note';
+    m.textContent = 'A marathon needs runners. Add at least two numbers (+ Add another, or try a preset below) and press Draw.';
+    raceEl.appendChild(m);
+    return;
+  }
+  var note = document.createElement('p');
+  note.className = 'race-note';
+  note.textContent = 'Pick the number you think will travel farthest from the start. Choosing restarts the race.';
+  raceEl.appendChild(note);
+  cards.forEach(function (c, i) {
+    var row = document.createElement('label');
+    row.className = 'race-row';
+    row.innerHTML = '<input type="radio" name="bet" class="race-bet"><span class="race-label"></span><span class="race-bar"><i></i></span><span class="race-val">0 u</span>';
+    row.querySelector('.race-label').textContent = c.label;
+    row.title = 'Bet on ' + c.label;
+    row.querySelector('input').setAttribute('aria-label', 'Bet on ' + c.label);
+    row.querySelector('input').addEventListener('change', function () { betIdx = i; abortExport(); startAnimation(); });
+    c.raceRow = row; c.raceFill = row.querySelector('i'); c.raceVal = row.querySelector('.race-val');
+    raceEl.appendChild(row);
+  });
+  var w = document.createElement('p');
+  w.className = 'race-win';
+  raceEl.appendChild(w);
+  raceEl.winEl = w;
+  var b = document.createElement('p');
+  b.className = 'race-win';
+  raceEl.appendChild(b);
+  raceEl.betEl = b;
+}
+
+function updateRace(finished) {
+  if (!numarathon || cards.length < 2 || raceEl.hidden || !raceEl.winEl) return;
+  var maxD = 0, leader = null;
+  cards.forEach(function (c) { if (c.finalDist > maxD) maxD = c.finalDist; });
+  cards.forEach(function (c) { if (!leader || c.tipDist > leader.tipDist) leader = c; });
+  cards.forEach(function (c) {
+    c.raceFill.style.width = (maxD > 0 ? Math.min(100, c.tipDist / maxD * 100) : 0) + '%';
+    c.raceRow.classList.toggle('lead', c === leader && c.tipDist > 0);
+    setText(c.raceVal, fmt(c.tipDist) + ' u');
+  });
+  var win = '', bet = '';
+  if (finished && leader) {
+    var ties = cards.filter(function (c) { return Math.abs(c.tipDist - leader.tipDist) < 1e-9; });
+    win = ties.length > 1
+      ? 'A tie at ' + fmt(leader.tipDist) + ' u.'
+      : '👑 ' + leader.label + ' travelled farthest: ' + fmt(leader.tipDist) + ' u from the start.';
+    if (betIdx >= 0 && cards[betIdx]) {
+      var mine = cards[betIdx];
+      var rank = 1 + cards.filter(function (c) { return c.tipDist > mine.tipDist + 1e-9; }).length;
+      bet = rank === 1 ? '🎉 Your bet on ' + mine.label + ' won!'
+                       : 'Your bet on ' + mine.label + ' finished #' + rank + ' of ' + cards.length + '.';
+    }
+  }
+  setText(raceEl.winEl, win);
+  setText(raceEl.betEl, bet);
+}
+
+/* ================= animation loop ================= */
+function stopLoop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
+
+function frame(now) {
+  var dt = Math.min(100, now - lastT); lastT = now;
+  progress += (speedOverride || parseFloat(speedRange.value)) * dt / 1000;
+  var running = false;
+  cards.forEach(function (c) {
+    render(c, progress);
+    if (progress < c.digits.length) running = true;
+  });
+  updateRace(!running);
+  raf = running ? requestAnimationFrame(frame) : 0;   // done -> freeze, loop stops
+}
+
+function startAnimation(force) {
+  stopLoop();
+  if (reduceMotion && !force) { finish(); return; }
+  progress = 0;
+  cards.forEach(function (c) { c.shown = -1; });
+  renderAll();
+  lastT = performance.now();
+  raf = requestAnimationFrame(frame);
+}
+
+function finish() {
+  stopLoop();
+  progress = 1e9;
+  cards.forEach(function (c) { c.shown = -1; });
+  renderAll();
+}
+
+/* ================= cards ================= */
+function makeCard(label, digits) {
+  var el = document.createElement('article');
+  el.className = 'card';
+  el.innerHTML =
+    '<div class="card-head"><span class="card-title"></span><span class="card-count"></span></div>' +
+    '<canvas role="img"></canvas>' +
+    '<div class="stats"><span>distance <b class="dist">0.00</b> u</span><span>path <b class="plen">0.00</b> u</span></div>' +
+    '<div class="digits"><span class="done"></span><span class="rest"></span></div>' +
+    '<div class="card-foot"><button class="ghost small save" type="button">Save image</button><button class="ghost small poster" type="button">Save poster</button></div>';
+  var card = {
+    el: el, label: label, digits: digits, shown: -1, tipDist: 0, tipPath: 0,
+    canvas: el.querySelector('canvas'),
+    doneEl: el.querySelector('.done'), restEl: el.querySelector('.rest'),
+    countEl: el.querySelector('.card-count'),
+    distEl: el.querySelector('.dist'), plenEl: el.querySelector('.plen')
+  };
+  el.querySelector('.card-title').textContent = label;
+  el.querySelector('.card-title').title = label;
+  card.canvas.setAttribute('aria-label', 'Digit walk of ' + label + ' (' + digits.length + ' digits)');
+  card.ctx = card.canvas.getContext('2d');
+  el.querySelector('.save').addEventListener('click', function () {
+    var a = document.createElement('a');
+    a.download = 'digitwalker-' + slug(label) + '.png';
+    a.href = card.canvas.toDataURL('image/png');
+    a.click();
+  });
+  el.querySelector('.poster').addEventListener('click', function () { savePoster(card); });
+  return card;
+}
+
+function setErrors(list) {
+  errorsEl.innerHTML = '';
+  list.forEach(function (msg) {
+    var li = document.createElement('li');
+    li.textContent = msg;
+    errorsEl.appendChild(li);
+  });
+}
+
+var statusTimer = 0;
+function setStatus(msg, ms) {
+  clearTimeout(statusTimer);
+  statusEl.textContent = msg;
+  if (msg && ms !== 0) statusTimer = setTimeout(function () { statusEl.textContent = ''; }, ms || 4000);
+}
+
+function draw() {
+  abortExport();
+  stopLoop();
+  var N = parseInt(digitsSel.value, 10);
+  var D = Decimal.clone({ precision: N + GUARD });
+  var errs = [], built = [];
+  var inputs = exprList.querySelectorAll('input');
+  Array.prototype.forEach.call(inputs, function (inp, idx) {
+    inp.removeAttribute('aria-invalid');
+    var src = inp.value.trim();
+    if (!src) return;
+    try {
+      var val = evaluate(src, D);
+      built.push(makeCard(src, extractDigits(val, N, skipInt.checked)));
+    } catch (err) {
+      inp.setAttribute('aria-invalid', 'true');
+      errs.push('Expression ' + (idx + 1) + ': ' + String(err.message || err).replace(/^\[DecimalError\]\s*/, ''));
+    }
+  });
+  setErrors(errs);
+
+  plots.innerHTML = '';
+  cards = built;
+  plots.setAttribute('data-n', String(cards.length));
+  syncUrl();
+  if (!cards.length) {
+    raceEl.hidden = true;
+    var e = document.createElement('div');
+    e.className = 'empty';
+    e.textContent = errs.length ? 'Fix the expression to see its walk.' : 'Type an expression or tap the keypad, then press Draw.';
+    plots.appendChild(e);
+    return;
+  }
+  cards.forEach(function (c) { plots.appendChild(c.el); });
+  cards.forEach(function (c) { computePath(c); recolor(c); layout(c); });
+  buildRace();
+  startAnimation();
+
+  if (window.matchMedia('(max-width:56rem)').matches) {
+    plots.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+  }
+}
+
+/* ================= poster export (high resolution, print-ready) ================= */
+function rr(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function ellipsize(ctx, text, maxW) {
+  if (ctx.measureText(text).width <= maxW) return text;
+  while (text.length > 1 && ctx.measureText(text + '…').width > maxW) text = text.slice(0, -1);
+  return text + '…';
+}
+
+function savePoster(card) {
+  var W = 3000, H = 3700, m = 150, S = W - 2 * m;
+  var cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  var c = cv.getContext('2d');
+  c.fillStyle = '#fff'; c.fillRect(0, 0, W, H);
+
+  c.save(); c.translate(m, m);
+  paint(c, S, card, fit(card, S), 1e9, { lwScale: S / 460, tip: false, axes: false });
+  c.restore();
+
+  c.textBaseline = 'alphabetic';
+  c.fillStyle = '#16222E';
+  c.font = '800 128px ' + FONT;
+  c.fillText(ellipsize(c, card.label, S), m, 3080);
+
+  c.fillStyle = '#506070';
+  c.font = '500 62px ' + FONT;
+  var turn = turnSel.options[turnSel.selectedIndex].text;
+  var dir = dirSel.value === 'cw' ? 'clockwise' : 'anticlockwise';
+  c.fillText(card.digits.length + ' digits · turn ' + turn + ' ' + dir, m, 3180);
+  c.fillText('Distance from start ' + fmt(card.finalDist) + ' u · path length ' + fmt(card.finalPath) + ' u', m, 3270);
+
+  // colour bar: first digit -> last digit
+  var g = c.createLinearGradient(m, 0, m + S, 0);
+  for (var k = 0; k <= 10; k++) g.addColorStop(k / 10, cmapColor(cmapSel.value, k / 10));
+  c.fillStyle = g; rr(c, m, 3350, S, 30, 15); c.fill();
+  c.fillStyle = '#506070'; c.font = '500 44px ' + FONT;
+  c.textAlign = 'left';  c.fillText('first digit', m, 3450);
+  c.textAlign = 'right'; c.fillText('last digit', m + S, 3450);
+
+  c.textAlign = 'left'; c.fillStyle = '#16222E'; c.font = '800 54px ' + FONT;
+  c.fillText('Digitwalker', m, 3600);
+  var pw = c.measureText('Digitwalker').width;
+  c.fillStyle = '#506070'; c.font = '400 46px ' + FONT;
+  c.fillText('by Himanshu Sharma', m + pw + 30, 3600);
+  c.textAlign = 'right'; c.fillStyle = '#506070'; c.font = '500 48px ' + FONT;
+  c.fillText('phymanshu.github.io', m + S, 3600);
+
+  cv.toBlob(function (blob) {
+    if (!blob) return;
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'digitwalker-poster-' + slug(card.label) + '.png';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+  }, 'image/png');
+}
+
+/* ================= video export (all panels together) ================= */
+var exp = null;
+
+function abortExport() {
+  if (!exp) return;
+  exp.aborted = true;
+  cancelAnimationFrame(exp.raf);
+  speedOverride = 0;
+  try { exp.recorder.stop(); } catch (e) { /* already stopped */ }
+}
+
+function exportVideo() {
+  if (exp || !cards.length) return;
+  if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) {
+    setStatus('This browser cannot record video from a canvas. Try a recent Chrome, Edge, Firefox or Safari.', 7000);
+    return;
+  }
+  var mime = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4']
+    .filter(function (m) { return MediaRecorder.isTypeSupported(m); })[0];
+  if (!mime) { setStatus('No supported video format found in this browser.', 7000); return; }
+
+  var n = cards.length;
+  var cols = n === 1 ? 1 : (n <= 4 ? 2 : 3), rows = Math.ceil(n / cols);
+  var cell = n === 1 ? 720 : (n <= 4 ? 520 : 400);
+  var gap = 24, head = 46, foot = 44, top = 70, bottom = 60, cellH = head + cell + foot;
+  var W = gap + cols * (cell + gap), H = top + rows * (cellH + gap) + bottom;
+  W += W % 2; H += H % 2;
+
+  var cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  var cx = cv.getContext('2d');
+  var maxN = maxDigits();
+
+  function composite() {
+    cx.fillStyle = '#ECEFF1'; cx.fillRect(0, 0, W, H);
+    cx.textBaseline = 'middle';
+    cx.textAlign = 'left'; cx.fillStyle = '#16222E'; cx.font = '800 28px ' + FONT;
+    cx.fillText('Digitwalker', gap, top / 2 + 4);
+    var tw = cx.measureText('Digitwalker').width;
+    cx.fillStyle = '#506070'; cx.font = '400 18px ' + FONT;
+    cx.fillText('by Himanshu Sharma', gap + tw + 12, top / 2 + 6);
+    cx.textAlign = 'right'; cx.fillStyle = '#506070'; cx.font = '500 18px ' + FONT;
+    cx.fillText('phymanshu.github.io', W - gap, top / 2 + 4);
+    cards.forEach(function (c, i) {
+      var x = gap + (i % cols) * (cell + gap), y = top + Math.floor(i / cols) * (cellH + gap);
+      cx.fillStyle = '#fff'; rr(cx, x, y, cell, cellH, 22); cx.fill();
+      cx.textAlign = 'left'; cx.fillStyle = '#16222E'; cx.font = '700 20px ' + FONT;
+      cx.fillText(ellipsize(cx, c.label, cell - 28), x + 14, y + head / 2 + 2);
+      cx.drawImage(c.canvas, x, y + head, cell, cell);
+      cx.fillStyle = '#506070'; cx.font = '500 17px ' + FONT;
+      cx.fillText('distance ' + fmt(c.tipDist) + ' u   ·   path ' + fmt(c.tipPath) + ' u', x + 14, y + head + cell + foot / 2);
+    });
+    var msg = '1 u = the step for digit 1';
+    if (numarathon && n > 1 && progress >= maxN) {
+      var lead = cards.reduce(function (a, b) { return b.tipDist > a.tipDist ? b : a; });
+      msg = '👑 ' + lead.label + ' travelled farthest (' + fmt(lead.tipDist) + ' u)';
+    }
+    cx.textAlign = 'center'; cx.fillStyle = '#16222E'; cx.font = '600 20px ' + FONT;
+    cx.fillText(ellipsize(cx, msg, W - 2 * gap), W / 2, H - bottom / 2);
+  }
+
+  var chunks = [];
+  var rec = new MediaRecorder(cv.captureStream(30), { mimeType: mime, videoBitsPerSecond: 5000000 });
+  var state = { recorder: rec, raf: 0, aborted: false };
+  exp = state;
+  rec.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+  rec.onstop = function () {
+    speedOverride = 0;
+    videoBtn.disabled = false;
+    if (exp === state) exp = null;
+    if (state.aborted) { setStatus('Recording cancelled.'); return; }
+    var blob = new Blob(chunks, { type: mime.split(';')[0] });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'digitwalker-' + slug(cards.map(function (c) { return c.label; }).join('_vs_')) + (mime.indexOf('mp4') >= 0 ? '.mp4' : '.webm');
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+    setStatus('Animation saved (' + (mime.indexOf('mp4') >= 0 ? 'MP4' : 'WebM') + ').', 6000);
+  };
+
+  videoBtn.disabled = true;
+  speedOverride = Math.max(parseFloat(speedRange.value), maxN / 12);   // keep clips to roughly 12 s or less
+  startAnimation(true);
+  composite();
+  rec.start();
+
+  var doneAt = 0;
+  (function tick(now) {
+    if (state.aborted) return;
+    composite();
+    if (progress >= maxN) {
+      if (!doneAt) doneAt = now;
+      if (now - doneAt > 1600) { rec.stop(); return; }      // hold the final frame briefly
+    }
+    setStatus('Recording… ' + Math.min(100, Math.round(progress / maxN * 100)) + '%', 0);
+    state.raf = requestAnimationFrame(tick);
+  })(performance.now());
+}
+
+/* ================= shareable URL ================= */
+function stateParams() {
+  var q = new URLSearchParams();
+  Array.prototype.forEach.call(exprList.querySelectorAll('input'), function (i) {
+    var v = i.value.trim();
+    if (v) q.append('e', v);
+  });
+  q.set('n', digitsSel.value);
+  q.set('t', turnSel.value);
+  q.set('d', dirSel.value);
+  q.set('c', cmapSel.value);
+  q.set('s', skipInt.checked ? '1' : '0');
+  q.set('a', axesToggle.checked ? '1' : '0');
+  q.set('v', speedRange.value);
+  if (numarathon) q.set('r', '1');
+  return q;
+}
+function baseUrl() { return location.href.split('#')[0].split('?')[0]; }
+function shareUrl() { return baseUrl() + '?' + stateParams().toString(); }
+function syncUrl() {
+  try { history.replaceState(null, '', '?' + stateParams().toString()); } catch (e) { /* e.g. file:// */ }
+}
+function setSel(sel, val) {
+  if (val == null) return;
+  for (var i = 0; i < sel.options.length; i++) if (sel.options[i].value === val) { sel.value = val; return; }
+}
+function loadFromUrl() {
+  var q;
+  try { q = new URLSearchParams(location.search); } catch (e) { return []; }
+  setSel(digitsSel, q.get('n')); setSel(turnSel, q.get('t')); setSel(dirSel, q.get('d')); setSel(cmapSel, q.get('c'));
+  if (q.get('s') !== null) skipInt.checked = q.get('s') === '1';
+  if (q.get('a') !== null) axesToggle.checked = q.get('a') === '1';
+  if (q.get('r') === '1') numarathon = true;
+  var v = parseInt(q.get('v'), 10);
+  if (v >= 2 && v <= 80) { speedRange.value = v; speedVal.textContent = v + '/s'; }
+  return q.getAll('e').map(function (s) { return s.slice(0, 200); }).filter(Boolean).slice(0, MAX_EXPR);
+}
+
+function copyLink() {
+  var url = shareUrl();
+  syncUrl();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(
+      function () { setStatus('Link copied. Anyone opening it sees your walk.'); },
+      function () { window.prompt('Copy this link:', url); }
+    );
+  } else {
+    window.prompt('Copy this link:', url);
+  }
+}
+
+/* ================= expression rows & keypad ================= */
+var activeInput = null;
+
+function addRow(value) {
+  if (exprList.children.length >= MAX_EXPR) return null;
+  var row = document.createElement('div');
+  row.className = 'expr-row';
+  var inp = document.createElement('input');
+  inp.type = 'text';
+  inp.value = value || '';
+  inp.placeholder = 'e.g. sqrt(2)/10';
+  inp.spellcheck = false;
+  inp.autocomplete = 'off';
+  inp.setAttribute('autocapitalize', 'off');
+  inp.setAttribute('aria-label', 'Numerical expression');
+  inp.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); draw(); } });
+  var x = document.createElement('button');
+  x.type = 'button'; x.className = 'x'; x.textContent = '×';
+  x.setAttribute('aria-label', 'Remove this expression');
+  x.addEventListener('click', function () {
+    if (exprList.children.length > 1) { row.remove(); } else { inp.value = ''; inp.focus(); }
+    syncRows();
+  });
+  row.appendChild(inp); row.appendChild(x);
+  exprList.appendChild(row);
+  syncRows();
+  return inp;
+}
+
+function syncRows() {
+  addBtn.disabled = exprList.children.length >= MAX_EXPR;
+  var multi = exprList.children.length > 1;
+  Array.prototype.forEach.call(exprList.querySelectorAll('.x'), function (b) { b.style.visibility = multi ? 'visible' : 'hidden'; });
+  if (!activeInput || !document.body.contains(activeInput)) activeInput = exprList.querySelector('input');
+}
+
+exprList.addEventListener('focusin', function (ev) { if (ev.target.tagName === 'INPUT') activeInput = ev.target; });
+
+function insertText(text) {
+  var el = activeInput || exprList.querySelector('input');
+  if (!el) return;
+  var s = el.selectionStart == null ? el.value.length : el.selectionStart;
+  var e = el.selectionEnd == null ? s : el.selectionEnd;
+  el.value = el.value.slice(0, s) + text + el.value.slice(e);
+  var pos = s + text.length;
+  el.focus();
+  el.setSelectionRange(pos, pos);
+}
+function backspace() {
+  var el = activeInput || exprList.querySelector('input');
+  if (!el) return;
+  var s = el.selectionStart == null ? el.value.length : el.selectionStart;
+  var e = el.selectionEnd == null ? s : el.selectionEnd;
+  if (s === e && s > 0) s--;
+  el.value = el.value.slice(0, s) + el.value.slice(e);
+  el.focus();
+  el.setSelectionRange(s, s);
+}
+
+// [label, action, kind, title]
+var KEYS = [
+  ['π', 'pi', 'fn', 'pi'], ['e', 'e', 'fn', 'Euler’s number'], ['φ', 'phi', 'fn', 'golden ratio'], ['(', '(', 'op'], [')', ')', 'op'],
+  ['√', 'sqrt(', 'fn', 'square root'], ['x²', '^2', 'fn', 'square'], ['xʸ', '^', 'op', 'power'], ['ln', 'ln(', 'fn', 'natural log'], ['log', 'log(', 'fn', 'log base 10'],
+  ['sin', 'sin(', 'fn', 'radians'], ['cos', 'cos(', 'fn', 'radians'], ['tan', 'tan(', 'fn', 'radians'], ['exp', 'exp(', 'fn', 'e to the power'], ['n!', '!', 'fn', 'factorial'],
+  ['7', '7', 'num'], ['8', '8', 'num'], ['9', '9', 'num'], ['÷', '/', 'op', 'divide'], ['⌫', '@BACK', 'act', 'backspace'],
+  ['4', '4', 'num'], ['5', '5', 'num'], ['6', '6', 'num'], ['×', '*', 'op', 'multiply'], ['AC', '@CLEAR', 'act', 'clear this expression'],
+  ['1', '1', 'num'], ['2', '2', 'num'], ['3', '3', 'num'], ['−', '-', 'op', 'minus'], ['|x|', 'abs(', 'fn', 'absolute value'],
+  ['0', '0', 'num'], ['.', '.', 'num'], ['+', '+', 'op'], ['Draw', '@DRAW', 'go', 'evaluate and draw']
+];
+var keypad = $('keypad');
+KEYS.forEach(function (k) {
+  var b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'key ' + k[2];
+  b.textContent = k[0];
+  if (k[3]) { b.title = k[3]; b.setAttribute('aria-label', k[3]); }
+  b.addEventListener('mousedown', function (ev) { ev.preventDefault(); });   // keep caret in the input
+  b.addEventListener('click', function () {
+    if (k[1] === '@BACK') backspace();
+    else if (k[1] === '@CLEAR') { var el = activeInput || exprList.querySelector('input'); if (el) { el.value = ''; el.focus(); } }
+    else if (k[1] === '@DRAW') draw();
+    else insertText(k[1]);
+  });
+  keypad.appendChild(b);
+});
+
+/* single-number examples (fill the active box) */
+[['π', 'pi'], ['e', 'e'], ['√2', 'sqrt(2)'], ['φ', 'phi'], ['1/7', '1/7'], ['ln 2', 'ln(2)']].forEach(function (ex) {
+  var b = document.createElement('button');
+  b.type = 'button'; b.className = 'chip'; b.textContent = ex[0];
+  b.addEventListener('click', function () {
+    var el = activeInput || exprList.querySelector('input');
+    el.value = ex[1];
+    draw();
+  });
+  $('chips').appendChild(b);
+});
+
+/* comparison presets (replace all boxes) */
+function loadPreset(list) {
+  exprList.innerHTML = '';
+  activeInput = null;
+  list.forEach(addRow);
+  draw();
+}
+[['π vs 22/7', ['pi', '22/7']],
+ ['Rational vs irrational', ['1/7', '22/7', 'sqrt(2)', 'pi']],
+ ['Famous irrationals', ['pi', 'e', 'phi', 'sqrt(2)']]].forEach(function (p) {
+  var b = document.createElement('button');
+  b.type = 'button'; b.className = 'chip accent'; b.textContent = p[0];
+  b.addEventListener('click', function () { loadPreset(p[1]); });
+  $('presets').appendChild(b);
+});
+
+/* ================= wiring ================= */
+drawBtn.addEventListener('click', draw);
+addBtn.addEventListener('click', function () { var i = addRow(''); if (i) i.focus(); });
+replayBtn.addEventListener('click', function () { if (cards.length) { abortExport(); startAnimation(); } });
+finishBtn.addEventListener('click', function () { if (cards.length) { abortExport(); finish(); } });
+linkBtn.addEventListener('click', copyLink);
+marathonBtn.addEventListener('click', function () {
+  numarathon = !numarathon;
+  setMarathonUI();
+  syncUrl();
+  buildRace();
+  if (numarathon && cards.length >= 2) { abortExport(); startAnimation(); }
+});
+videoBtn.addEventListener('click', exportVideo);
+
+speedRange.addEventListener('input', function () { speedVal.textContent = speedRange.value + '/s'; });
+speedRange.addEventListener('change', syncUrl);
+
+// changes that need a fresh evaluation
+digitsSel.addEventListener('change', draw);
+skipInt.addEventListener('change', draw);
+// changes that only re-shape the path
+function reshape() {
+  syncUrl();
+  if (!cards.length) return;
+  abortExport();
+  cards.forEach(function (c) { computePath(c); layout(c); });
+  startAnimation();
+}
+turnSel.addEventListener('change', reshape);
+dirSel.addEventListener('change', reshape);
+// pure re-paint
+cmapSel.addEventListener('change', function () { syncUrl(); cards.forEach(recolor); renderAll(); });
+axesToggle.addEventListener('change', function () { syncUrl(); renderAll(); });
+
+var resizeTimer = 0;
+window.addEventListener('resize', function () {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function () {
+    DPR = Math.min(window.devicePixelRatio || 1, 2.5);
+    cards.forEach(function (c) { c.shown = -1; layout(c); });
+    renderAll();
+  }, 80);
+});
+
+// start from the shared link if there is one, otherwise with pi so the page is never empty
+var fromUrl = loadFromUrl();
+setMarathonUI();
+if (fromUrl.length) fromUrl.forEach(addRow); else addRow('pi');
+draw();
+})();
+</script>
+</body>
+</html>
