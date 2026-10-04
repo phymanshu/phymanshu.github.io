@@ -645,13 +645,14 @@ footer a:hover{color:var(--signal)}
 <button class="gal-float pulse" id="galFloat" type="button" hidden>🎨 Gallery <span class="new-badge" id="galNewFloat">NEW</span></button>
 
 <footer>
-  Part of Himanshu Sharma's <a href="https://phymanshu.github.io/#playground">science playground</a> · <a href="#gallery">🎨 Visit the Rational Art Gallery</a>
+  Part of Himanshu Sharma's <a href="https://phymanshu.github.io/#playground">science playground</a> · <a href="#gallery">🎨 Visit the Rational Art Gallery</a><span id="visitNote" hidden> · Visits are counted anonymously, without cookies.</span>
 </footer>
 
 <script>
 (function () {
 'use strict';
 var INITIAL_HASH = location.hash;
+var INITIAL_SEARCH = location.search;   // kept for the visit counter: it reads ?ref=medium from the link you arrived by
 var noInitialScroll = !location.search;   // plain first visit: stay at the top so the tabs and banner are seen   // the Walker rewrites the address bar when it first draws, so remember this now
 
 /* ======== EDIT THESE: your support / shop links. Leave '' to hide a link. ======== */
@@ -664,6 +665,10 @@ var LINKS = {
 
 /* ======== Shared leaderboard. Paste your Google Apps Script web-app URL here (see leaderboard_apps_script.gs).
    Leave '' and scores are kept on each visitor's own device only. ======== */
+/* ======== Visit counter (optional, private dashboard for you). Create a free site at goatcounter.com, then put its
+   code here, e.g. 'phymanshu' if your dashboard is phymanshu.goatcounter.com. Leave '' to switch counting off. ======== */
+var ANALYTICS = { goatcounter: 'cvhsharma' };
+
 var LEADERBOARD = {
   endpoint: 'https://script.google.com/macros/s/AKfycbz7_EkM41kiJLaIcEOKQ3vWGBt8i_QBtX3IDSVeihDR-yqj0kxHLS-nem8cgeeU2RSjCw/exec'
 };
@@ -1957,6 +1962,7 @@ async function hofSubmit() {
     hofRender();
     var sorted = hofEntries.slice().sort(hofCmp), rank = 0;
     sorted.forEach(function (e, i) { if (e.fp === run.fp) rank = i + 1; });
+    track('hall-entry');
     hofSay('✅ ' + expr + ' travelled ' + run.dist.toFixed(2) + ' u and finished #' + rank + ' of ' + sorted.length + '.');
   } finally {
     hofBusy = false; hofGo.disabled = false;
@@ -2068,6 +2074,34 @@ function hofInit() {
   hofRefresh(true);
 }
 
+/* ================= anonymous visit counter (GoatCounter: no cookies, no personal data) ================= */
+var gcReady = false, gcQueue = [];
+function sendEvent(name) {
+  try { window.goatcounter.count({ path: name, title: name, event: true }); } catch (e) { /* counting must never break the page */ }
+}
+function track(name) {                       // anonymous event such as "gallery-open"; held back until the counter has loaded
+  if (!ANALYTICS.goatcounter) return;
+  if (!gcReady) { if (gcQueue.length < 20) gcQueue.push(name); return; }
+  sendEvent(name);
+}
+function analyticsInit() {
+  var code = String(ANALYTICS.goatcounter || '').trim();
+  if (!/^[a-z0-9][a-z0-9-]{0,38}[a-z0-9]$/i.test(code) || location.protocol === 'file:') { ANALYTICS.goatcounter = ''; return; }
+  var q; try { q = new URLSearchParams(INITIAL_SEARCH); } catch (e) { q = new URLSearchParams(''); }
+  var ref = q.get('ref') || q.get('utm_source') || document.referrer || '';
+  window.goatcounter = { no_onload: true };  // we send the page view ourselves, once, with a clean path
+  var s = document.createElement('script');
+  s.async = true; s.src = 'https://gc.zgo.at/count.js';
+  s.setAttribute('data-goatcounter', 'https://' + code + '.goatcounter.com/count');
+  s.onload = function () {
+    try { window.goatcounter.count({ path: location.pathname, title: document.title, referrer: ref }); } catch (e) { /* ignore */ }
+    gcReady = true;
+    gcQueue.splice(0).forEach(sendEvent);
+  };
+  document.head.appendChild(s);
+  $('visitNote').hidden = false;
+}
+
 /* ================= switching between the Walker and the Gallery ================= */
 var galReady = false, LS_SEEN = 'digitwalker.galseen.v1', ctaVisible = true, ctaTarget = null;
 function applyNew() {                              // NEW badge + pulse until the gallery has been opened once
@@ -2084,7 +2118,7 @@ function showTab(name, updateHash, toTop) {
   if (gal) lsSet(LS_SEEN, 1);
   applyNew();
   if (updateHash) { try { history.replaceState(null, '', location.pathname + location.search + (gal ? '#gallery' : '')); } catch (e) { /* ignore */ } }
-  if (gal) { if (!galReady) { galReady = true; galInit(); } }
+  if (gal) { if (!galReady) { galReady = true; galInit(); track('gallery-open'); } }
   else window.dispatchEvent(new Event('resize'));        // the Walker's canvases need re-measuring after being hidden
   if (toTop) window.scrollTo(0, 0);
   floatUpdate();
@@ -2118,9 +2152,10 @@ function tabsInit() {
    { p: 1, q: 7, n: 250, angle: 60, dir: 'ccw', cmap: 'ocean', bg: '#ffffff', lw: 1.6, sym: 6, skip: 0 }]
     .forEach(function (r, i) { galRender($('galCta').querySelectorAll('canvas')[i], r, 1.8); });
   $('tabbtn-walk').addEventListener('click', function () { showTab('walk', true, true); });
-  $('tabbtn-gallery').addEventListener('click', function () { showTab('gallery', true, true); });
-  $('galFloat').addEventListener('click', function () { showTab('gallery', true, true); });
-  $('galCtaGo').addEventListener('click', ctaGo);
+  $('tabbtn-gallery').addEventListener('click', function () { track('go-gallery-header'); showTab('gallery', true, true); });
+  $('galFloat').addEventListener('click', function () { track('go-gallery-floating'); showTab('gallery', true, true); });
+  $('galCtaGo').addEventListener('click', function () { track(ctaTarget ? 'go-gallery-card-fraction' : 'go-gallery-card'); ctaGo(); });
+  document.querySelector('footer a[href="#gallery"]').addEventListener('click', function () { track('go-gallery-footer'); });
   window.addEventListener('hashchange', function () { showTab(location.hash === '#gallery' ? 'gallery' : 'walk', false, true); });
   if ('IntersectionObserver' in window) {                   // the floating button shows only when the header button is out of sight
     new IntersectionObserver(function (es) { ctaVisible = es[0].isIntersecting; floatUpdate(); }).observe($('tabbtn-gallery'));
@@ -2397,6 +2432,7 @@ async function galPin() {
     try { wallItems = await wallLoad(); } catch (err) { wallItems.unshift(item); }
     wallShown = Math.max(wallShown, ART_PAGE);
     wallRender();
+    track('gallery-pin');
     galSay('📌 Pinned! Your painting is now on the Wall.');
     var see = $('gSeeWall'); see.textContent = 'See your painting on the Wall ↓'; see.dataset.mine = '1';
   } finally {
@@ -2531,6 +2567,7 @@ marathonBtn.addEventListener('click', function () {
   if (numarathon && cards.length >= 2) { abortExport(); startAnimation(); }
 });
 videoBtn.addEventListener('click', function () {
+  track('export-' + fmtSel.value);
   if (fmtSel.value === 'gif') exportGif(); else if (fmtSel.value === 'png') exportPng(); else exportVideo();
 });
 function syncFormat() {
@@ -2578,6 +2615,7 @@ if (fromUrl.length) fromUrl.forEach(addRow); else addRow('pi');
 draw();
 hofInit();
 tabsInit();
+analyticsInit();
 })();
 </script>
 </body>
