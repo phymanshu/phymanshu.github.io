@@ -138,6 +138,53 @@ button.on:hover{background:rgba(22,34,46,.06);color:var(--ink)}
 .btn-link.ghost{background:transparent;color:var(--muted);box-shadow:inset 0 0 0 1.5px var(--rule)}
 .btn-link.ghost:hover{background:rgba(22,34,46,.06);color:var(--ink)}
 
+/* --- hall of fame --- */
+.hof{
+  width:100%;max-width:40rem;background:#fff;border-radius:1.25rem;padding:1rem 1.15rem;
+  box-shadow:inset 0 0 0 1.5px var(--rule);display:flex;flex-direction:column;gap:.7rem;
+}
+.hof-head{display:flex;align-items:center;justify-content:space-between;gap:.75rem}
+.hof h2{margin:0;font:800 1rem var(--sans);letter-spacing:-.01em;color:var(--ink)}
+.hof-rules{margin:0;font:400 .8125rem/1.5 var(--sans);color:var(--muted)}
+.hof-rules b{color:var(--ink);font-weight:650}
+.hof-form{display:flex;gap:.45rem;flex-wrap:wrap}
+.hof-form input{
+  font:500 .9rem var(--mono);color:var(--ink);background:var(--paper);border:none;border-radius:1rem;
+  padding:.6rem .85rem;box-shadow:inset 0 0 0 1.5px var(--rule);min-width:0;
+}
+.hof-form input:focus{background:#fff;box-shadow:inset 0 0 0 2px var(--signal-bright);outline:none}
+#hofExpr{flex:2 1 12rem}
+#hofName{flex:1 1 7rem;font-family:var(--sans)}
+.hof-msg{margin:0;font:600 .85rem/1.45 var(--sans);color:var(--ink);min-height:1.2em}
+.hof-msg.bad{color:var(--signal)}
+.hof-table{width:100%;border-collapse:collapse;table-layout:fixed;font:500 .8125rem var(--sans)}
+.hof-table th{
+  font:700 .7rem var(--sans);letter-spacing:.03em;text-transform:uppercase;color:var(--muted);
+  text-align:left;padding:.3rem .35rem;border-bottom:1.5px solid var(--rule);
+}
+.hof-table td{
+  padding:.45rem .35rem;border-bottom:1px solid var(--paper);text-align:left;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);
+}
+.hof-table .rk{width:2.6rem;font-family:var(--mono);color:var(--muted)}
+.hof-table .num{font-family:var(--mono);font-weight:600}
+.hof-table .by{width:27%}
+.hof-table th.dist,.hof-table td.dist{width:5.4rem;text-align:right;font-family:var(--mono)}
+.hof-table .go{width:3rem;text-align:right;padding-right:.1rem}
+.hof-table tr.mine td{background:#FFF1F6}
+.hof-table tr.gap td{text-align:center;color:var(--muted);border-bottom:none;padding:.05rem;letter-spacing:.2em}
+.hof-table td.empty-row{text-align:center;color:var(--muted);white-space:normal;padding:1rem .5rem}
+.hof-table button.play{padding:.18rem .55rem;font-size:.68rem;line-height:1.2}
+.hof-foot{display:flex;justify-content:space-between;gap:.75rem;flex-wrap:wrap;font:400 .78rem/1.45 var(--sans);color:var(--muted)}
+
+@media (max-width:36rem){
+  .hof-table td.num,.hof-table td.by{white-space:normal;overflow-wrap:anywhere;line-height:1.3}
+  .hof-table .rk{width:2.1rem}
+  .hof-table .by{width:25%}
+  .hof-table th.dist,.hof-table td.dist{width:4.6rem}
+  .hof-table .go{width:2.6rem}
+}
+
 /* --- buttons --- */
 button{
   font:650 .9rem var(--sans);border:none;border-radius:2rem;padding:.62rem 1.15rem;cursor:pointer;
@@ -263,6 +310,25 @@ footer a:hover{color:var(--signal)}
       </div>
       <section class="race" id="race" hidden aria-label="Numarathon: which number travels farthest"></section>
 
+      <section class="hof" id="hof" aria-label="Numarathon Hall of Fame">
+        <div class="hof-head">
+          <h2>🏆 Numarathon Hall of Fame</h2>
+          <button class="ghost small" id="hofRefresh" type="button">↻ Refresh</button>
+        </div>
+        <p class="hof-rules">Same race for everyone: <b><span id="hofN">1000</span> digits</b>, turn <b>90° anticlockwise</b>, integer part included. Farthest from the start wins. Only <b>irrational</b> numbers can enter. Build yours from π, e, φ, √2 and friends (try <i>pi + sqrt(2)</i>). The first person to enter a number gets the credit.</p>
+        <div class="hof-form">
+          <input id="hofExpr" type="text" placeholder="your number, e.g. pi+sqrt(2)" spellcheck="false" autocomplete="off" autocapitalize="off" maxlength="120" aria-label="Number to enter">
+          <input id="hofName" type="text" placeholder="nickname" maxlength="24" autocomplete="off" aria-label="Your nickname (shown publicly)">
+          <button class="primary" id="hofGo" type="button">Check &amp; enter</button>
+        </div>
+        <p class="hof-msg" id="hofMsg" role="status" aria-live="polite"></p>
+        <table class="hof-table">
+          <thead><tr><th class="rk">#</th><th class="num">Number</th><th class="by">Introduced by</th><th class="dist">Distance</th><th class="go"></th></tr></thead>
+          <tbody id="hofBody"></tbody>
+        </table>
+        <div class="hof-foot"><span id="hofCount"></span><span id="hofNote"></span></div>
+      </section>
+
       <p class="note" id="note">Every digit is a step length: walk that far, turn, repeat. Lines start dark and get lighter towards the end of the number. Distances are in units (u), where 1 u is the step for the digit 1.</p>
 
       <section class="poem" aria-label="Rational and irrational numbers">
@@ -363,11 +429,12 @@ footer a:hover{color:var(--signal)}
           <label for="fmtSel">Animation</label>
           <select id="fmtSel">
             <option value="gif" selected>GIF</option>
+            <option value="png">Still image (PNG)</option>
             <option value="video">Video (WebM / MP4)</option>
           </select>
         </div>
         <div class="row-ctrl" id="gifQualRow">
-          <label for="gifQual">GIF size</label>
+          <label for="gifQual">Size</label>
           <select id="gifQual">
             <option value="std" selected>Standard</option>
             <option value="hi">High (larger file)</option>
@@ -397,6 +464,13 @@ var LINKS = {
   coffee:    'https://buymeacoffee.com/shymanshu',
   shop:      '',   // e.g. your Etsy / Redbubble / Printful store
   classroom: ''    // e.g. your Gumroad / Teachers Pay Teachers page
+};
+/* ================================================================================ */
+
+/* ======== Shared leaderboard. Paste your Google Apps Script web-app URL here (see leaderboard_apps_script.gs).
+   Leave '' and scores are kept on each visitor's own device only. ======== */
+var LEADERBOARD = {
+  endpoint: ''
 };
 /* ================================================================================ */
 
@@ -809,7 +883,7 @@ function makeCard(label, digits) {
     '<canvas role="img"></canvas>' +
     '<div class="stats"><span>distance <b class="dist">0.00</b> u</span><span>path <b class="plen">0.00</b> u</span></div>' +
     '<div class="digits"><span class="done"></span><span class="rest"></span></div>' +
-    '<div class="card-foot"><button class="ghost small save" type="button">Save image</button><button class="ghost small poster" type="button">Save poster</button></div>';
+    '<div class="card-foot"><button class="ghost small save" type="button">Save image</button><button class="ghost small poster" type="button">Save poster</button><button class="ghost small enter" type="button">🏆 Enter</button></div>';
   var card = {
     el: el, label: label, digits: digits, shown: -1, tipDist: 0, tipPath: 0,
     canvas: el.querySelector('canvas'),
@@ -828,6 +902,7 @@ function makeCard(label, digits) {
     a.click();
   });
   el.querySelector('.poster').addEventListener('click', function () { savePoster(card); });
+  el.querySelector('.enter').addEventListener('click', function () { hofPrefill(label); });
   return card;
 }
 
@@ -1305,6 +1380,28 @@ async function exportGif() {
   }
 }
 
+/* Still image of all panels on the finished walk (same layout as the GIF): a good cover/preview image. */
+async function exportPng() {
+  if (exp || !cards.length) return;
+  var list = cards.slice(), n = list.length, hi = gifQual.value === 'hi';
+  var cell = hi ? (n === 1 ? 800 : (n <= 4 ? 600 : 440)) : (n === 1 ? 600 : (n <= 4 ? 440 : 340));
+  videoBtn.disabled = true;
+  try {
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    var comp = makeComposer(list, cell, true, axesToggle.checked);
+    comp.composite(1e9);                                     // the finished picture
+    var blob = await new Promise(function (res) { comp.cv.toBlob(res, 'image/png'); });
+    if (!blob) throw new Error('the browser could not create the image');
+    download(blob, 'digitwalker-' + slug(list.map(function (c) { return c.label; }).join('_vs_')) + '.png');
+    setStatus('Image saved (' + sizeLabel(blob.size) + ', ' + comp.W + '×' + comp.H + ').', 6000);
+  } catch (err) {
+    console.error(err);
+    setStatus('Could not save the image: ' + (err && err.message ? err.message : err), 7000);
+  } finally {
+    videoBtn.disabled = false;
+  }
+}
+
 /* ================= shareable URL ================= */
 function stateParams() {
   var q = new URLSearchParams();
@@ -1470,6 +1567,230 @@ function loadPreset(list) {
   $('presets').appendChild(b);
 });
 
+/* ================= Numarathon Hall of Fame ================= */
+var RANK_N = 1000;                       // digits in the ranked race (must match RANK_N in the Apps Script)
+var TOP_N = 10, NAME_MAX = 24, EXPR_MAX = 120;
+var LS_SCORES = 'digitwalker.hof.v1', LS_ME = 'digitwalker.me.v1';
+var hofExpr = $('hofExpr'), hofName = $('hofName'), hofGo = $('hofGo'), hofMsg = $('hofMsg');
+var hofBody = $('hofBody'), hofCount = $('hofCount'), hofNote = $('hofNote');
+var hofEntries = [], hofMe = { name: '', mine: [] }, hofBusy = false;
+
+function lsGet(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* private mode etc. */ } }
+
+/* ---- the rules of the race ---- */
+function walk90(digits) {                    // exact integer walk: E, N, W, S ... (90 degrees anticlockwise)
+  var x = 0, y = 0, h = 0, len;
+  for (var i = 0; i < digits.length; i++) {
+    len = digits.charCodeAt(i) - 48;
+    if (h === 0) x += len; else if (h === 1) y += len; else if (h === 2) x -= len; else y -= len;
+    h = (h + 1) & 3;
+  }
+  return Math.hypot(x, y);
+}
+
+/* Rational numbers have a continued fraction with a tiny denominator (they repeat or end).
+   Test the first RANK_N digits: if they sit absurdly close to a fraction with a small denominator,
+   it is rational. A generic irrational essentially never does this (chance ~1e-25 per step).
+   This rules out rationals up to ~RANK_N/2 digits of denominator. It is a numerical test, not a proof of irrationality. */
+function looksRational(digits) {
+  var den = 10n ** BigInt(digits.length), num = BigInt(digits), d0 = den;
+  var LIM = 10n ** 25n, SLACK = 10n ** 45n, qm2 = 1n, qm1 = 0n, a, r, q;
+  var n0 = num, dn = den;
+  while (dn !== 0n) {
+    a = n0 / dn; r = n0 % dn;
+    if (a >= LIM && qm1 * qm1 * SLACK < d0) return true;     // huge partial quotient right after a small denominator
+    q = a * qm1 + qm2; qm2 = qm1; qm1 = q;
+    n0 = dn; dn = r;
+  }
+  return qm1 * qm1 * SLACK < d0;                              // the fraction terminates with a small denominator
+}
+
+function rankedRun(expr) {
+  var D = Decimal.clone({ precision: RANK_N + GUARD });
+  var val = evaluate(expr, D);
+  var digits;
+  try { digits = extractDigits(val, RANK_N, false); }
+  catch (e) { throw new Error('That number is zero, so it is rational. Only irrational numbers can enter.'); }
+  if (digits.length < RANK_N) {
+    throw new Error('That number ends after ' + digits.length + ' digit' + (digits.length === 1 ? '' : 's') + ', so it is rational. Only irrational numbers can enter.');
+  }
+  if (looksRational(digits)) {
+    throw new Error('Its digits fall into a repeating pattern, so it looks rational. Only irrational numbers can enter. Try mixing constants such as π, e, φ or √2.');
+  }
+  return { fp: 'd' + digits.slice(0, 40), dist: Math.round(walk90(digits) * 1e4) / 1e4 };
+}
+
+/* ---- storage: shared (Apps Script + Google Sheet) or device-only ---- */
+function hofClean(list) {
+  var best = {};
+  (Array.isArray(list) ? list : []).forEach(function (r) {
+    if (!r) return;
+    var dist = Number(r.dist), steps = Number(r.steps), t = Number(r.t);
+    var fp = String(r.fp || ''), expr = String(r.expr || ''), name = String(r.name || '');
+    if (!isFinite(dist) || dist < 0 || steps !== RANK_N || !/^d\d{10,60}$/.test(fp) || !expr || !name) return;
+    var e = { fp: fp, expr: expr.slice(0, EXPR_MAX), name: name.slice(0, NAME_MAX), steps: steps, dist: dist, t: isFinite(t) ? t : 0 };
+    if (!best[fp] || e.t < best[fp].t) best[fp] = e;                // same number twice: the first one keeps the credit
+  });
+  return Object.keys(best).map(function (k) { return best[k]; });
+}
+function hofCmp(a, b) { return (b.dist - a.dist) || (a.t - b.t); }
+
+function hofFetch(url, opts) {
+  var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  var timer = ctl ? setTimeout(function () { ctl.abort(); }, 15000) : 0;
+  opts = opts || {};
+  if (ctl) opts.signal = ctl.signal;
+  return fetch(url, opts).then(
+    function (r) { clearTimeout(timer); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); },
+    function (e) { clearTimeout(timer); throw e; }
+  );
+}
+function hofLoad() {
+  if (LEADERBOARD.endpoint) {
+    var u = LEADERBOARD.endpoint + (LEADERBOARD.endpoint.indexOf('?') < 0 ? '?' : '&') + 'action=list';
+    return hofFetch(u).then(function (j) { return hofClean(j && j.entries); });
+  }
+  return Promise.resolve(hofClean(lsGet(LS_SCORES)));
+}
+function hofPost(entry) {
+  if (LEADERBOARD.endpoint) {
+    return hofFetch(LEADERBOARD.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(entry) });
+  }
+  var list = hofClean(lsGet(LS_SCORES)), dup = list.filter(function (e) { return e.fp === entry.fp; })[0];
+  if (dup) return Promise.resolve({ ok: false, error: 'duplicate', by: dup.name, expr: dup.expr, dist: dup.dist });
+  var raw = lsGet(LS_SCORES); if (!Array.isArray(raw)) raw = [];
+  raw.push(entry); lsSet(LS_SCORES, raw);
+  return Promise.resolve({ ok: true });
+}
+
+/* ---- the table (top 10, plus "where you finished" when you are further down) ---- */
+function isMine(e) { return hofMe.mine.indexOf(e.fp) >= 0; }
+
+function hofRow(rank, e) {
+  var tr = document.createElement('tr');
+  if (isMine(e)) tr.className = 'mine';
+  function cell(cls, txt, tip) {
+    var c = document.createElement('td'); c.className = cls; c.textContent = txt;
+    if (tip) c.title = txt;
+    tr.appendChild(c);
+  }
+  cell('rk', rank <= 3 ? ['🥇', '🥈', '🥉'][rank - 1] : String(rank));
+  cell('num', e.expr, true);
+  cell('by', e.name, true);
+  cell('dist', e.dist.toFixed(2) + ' u');
+  var g = document.createElement('td'); g.className = 'go';
+  var b = document.createElement('button');
+  b.type = 'button'; b.className = 'ghost small play'; b.textContent = '▶';
+  b.title = 'Watch this walk'; b.setAttribute('aria-label', 'Watch the walk of ' + e.expr);
+  b.addEventListener('click', function () { replayRanked(e.expr); });
+  g.appendChild(b); tr.appendChild(g);
+  return tr;
+}
+
+function hofRender() {
+  var sorted = hofEntries.slice().sort(hofCmp), total = sorted.length, i;
+  hofBody.innerHTML = '';
+  if (!total) {
+    var tr = document.createElement('tr'), c = document.createElement('td');
+    c.colSpan = 5; c.className = 'empty-row';
+    c.textContent = 'No numbers have run yet. Be the first to put yours on the board.';
+    tr.appendChild(c); hofBody.appendChild(tr);
+  }
+  for (i = 0; i < Math.min(TOP_N, total); i++) hofBody.appendChild(hofRow(i + 1, sorted[i]));
+  var below = [];
+  for (i = TOP_N; i < total; i++) if (isMine(sorted[i])) below.push({ e: sorted[i], rank: i + 1 });
+  if (below.length) {
+    var gap = document.createElement('tr'), gc = document.createElement('td');
+    gc.colSpan = 5; gc.textContent = '⋮'; gap.className = 'gap'; gap.appendChild(gc); hofBody.appendChild(gap);
+    below.slice(0, 3).forEach(function (x) { hofBody.appendChild(hofRow(x.rank, x.e)); });
+  }
+  var txt = total ? total + (total === 1 ? ' number has' : ' numbers have') + ' run the race' : '';
+  if (below.length) txt += ' · your best: #' + below[0].rank;
+  hofCount.textContent = txt;
+  hofNote.textContent = LEADERBOARD.endpoint ? '' : 'Scores are saved on this device only.';
+}
+
+function hofSay(text, bad) { hofMsg.textContent = text; hofMsg.classList.toggle('bad', !!bad); }
+
+function hofRefresh(quiet) {
+  return hofLoad().then(function (list) { hofEntries = list; hofRender(); },
+    function () { if (!quiet) hofSay("Couldn't reach the leaderboard. Check your connection and try again.", true); });
+}
+
+async function hofSubmit() {
+  if (hofBusy) return;
+  var expr = hofExpr.value.trim(), name = hofName.value.replace(/\s+/g, ' ').trim().slice(0, NAME_MAX);
+  if (!expr) { hofSay('Type your number first, for example pi + sqrt(2).', true); hofExpr.focus(); return; }
+  if (expr.length > EXPR_MAX) { hofSay('Please keep the expression under ' + EXPR_MAX + ' characters.', true); return; }
+  if (!name) { hofSay('Add a nickname. It is shown next to your number.', true); hofName.focus(); return; }
+  hofBusy = true; hofGo.disabled = true;
+  try {
+    hofSay('Running ' + RANK_N + ' digits…');
+    await new Promise(function (r) { setTimeout(r, 30); });
+    var run;
+    try { run = rankedRun(expr); }
+    catch (err) { hofSay(String(err && err.message || err).replace(/^\[DecimalError\]\s*/, ''), true); return; }
+    var entry = { v: 1, fp: run.fp, expr: expr, name: name, steps: RANK_N, dist: run.dist, t: Date.now() };
+    var res;
+    try { res = await hofPost(entry); }
+    catch (err) { hofSay("Couldn't reach the leaderboard. Check your connection and try again.", true); return; }
+    if (!res || !res.ok) {
+      if (res && res.error === 'duplicate') {
+        hofSay('Already on the board: ' + (res.expr || 'that number') + ' was introduced by ' + (res.by || 'someone') +
+               (isFinite(Number(res.dist)) && res.dist !== '' ? ' (' + Number(res.dist).toFixed(2) + ' u)' : '') + '. Try a new combination!', true);
+      } else {
+        hofSay((res && res.message) || 'The board did not accept that entry.', true);
+      }
+      return;
+    }
+    hofMe.name = name;
+    if (hofMe.mine.indexOf(run.fp) < 0) hofMe.mine.push(run.fp);
+    lsSet(LS_ME, hofMe);
+    try { hofEntries = await hofLoad(); } catch (err) { hofEntries.push(entry); }
+    hofRender();
+    var sorted = hofEntries.slice().sort(hofCmp), rank = 0;
+    sorted.forEach(function (e, i) { if (e.fp === run.fp) rank = i + 1; });
+    hofSay('✅ ' + expr + ' travelled ' + run.dist.toFixed(2) + ' u and finished #' + rank + ' of ' + sorted.length + '.');
+  } finally {
+    hofBusy = false; hofGo.disabled = false;
+  }
+}
+
+function hofPrefill(label) {
+  hofExpr.value = label;
+  hofSay('');
+  var sec = $('hof');
+  sec.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+  (hofName.value ? hofGo : hofName).focus({ preventScroll: true });
+}
+
+/* show a board entry in the main plot, under the race rules */
+function replayRanked(expr) {
+  abortExport();
+  setSel(digitsSel, String(RANK_N)); setSel(turnSel, '90'); setSel(dirSel, 'ccw');
+  skipInt.checked = false;
+  speedRange.value = 80; speedVal.textContent = '80/s';
+  loadPreset([expr]);
+  plots.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+}
+
+function hofInit() {
+  $('hofN').textContent = String(RANK_N);
+  var me = lsGet(LS_ME);
+  if (me && typeof me === 'object') {
+    hofMe.name = typeof me.name === 'string' ? me.name.slice(0, NAME_MAX) : '';
+    hofMe.mine = Array.isArray(me.mine) ? me.mine.filter(function (s) { return typeof s === 'string'; }).slice(0, 500) : [];
+  }
+  hofName.value = hofMe.name;
+  hofExpr.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); hofSubmit(); } });
+  hofName.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); hofSubmit(); } });
+  hofGo.addEventListener('click', hofSubmit);
+  $('hofRefresh').addEventListener('click', function () { hofSay(''); hofRefresh(false); });
+  hofRender();
+  hofRefresh(true);
+}
+
 /* ================= wiring ================= */
 drawBtn.addEventListener('click', draw);
 addBtn.addEventListener('click', function () { var i = addRow(''); if (i) i.focus(); });
@@ -1483,11 +1804,13 @@ marathonBtn.addEventListener('click', function () {
   buildRace();
   if (numarathon && cards.length >= 2) { abortExport(); startAnimation(); }
 });
-videoBtn.addEventListener('click', function () { if (fmtSel.value === 'gif') exportGif(); else exportVideo(); });
+videoBtn.addEventListener('click', function () {
+  if (fmtSel.value === 'gif') exportGif(); else if (fmtSel.value === 'png') exportPng(); else exportVideo();
+});
 function syncFormat() {
-  var gif = fmtSel.value === 'gif';
-  videoBtn.textContent = gif ? 'Save GIF' : 'Save video';
-  gifQualRow.hidden = !gif;
+  var f = fmtSel.value;
+  videoBtn.textContent = f === 'gif' ? 'Save GIF' : (f === 'png' ? 'Save image' : 'Save video');
+  gifQualRow.hidden = f === 'video';
 }
 fmtSel.addEventListener('change', syncFormat);
 syncFormat();
@@ -1527,6 +1850,7 @@ var fromUrl = loadFromUrl();
 setMarathonUI();
 if (fromUrl.length) fromUrl.forEach(addRow); else addRow('pi');
 draw();
+hofInit();
 })();
 </script>
 </body>
