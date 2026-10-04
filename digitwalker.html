@@ -359,9 +359,23 @@ footer a:hover{color:var(--signal)}
 
       <div class="panel-group">
         <h2 class="panel-title">Share</h2>
+        <div class="row-ctrl">
+          <label for="fmtSel">Animation</label>
+          <select id="fmtSel">
+            <option value="gif" selected>GIF</option>
+            <option value="video">Video (WebM / MP4)</option>
+          </select>
+        </div>
+        <div class="row-ctrl" id="gifQualRow">
+          <label for="gifQual">GIF size</label>
+          <select id="gifQual">
+            <option value="std" selected>Standard</option>
+            <option value="hi">High (larger file)</option>
+          </select>
+        </div>
         <div class="btn-row">
           <button class="ghost" id="linkBtn" type="button">Copy link</button>
-          <button class="ghost" id="videoBtn" type="button">Save animation</button>
+          <button class="ghost" id="videoBtn" type="button">Save GIF</button>
         </div>
         <p class="status" id="status" aria-live="polite"></p>
       </div>
@@ -393,6 +407,7 @@ var turnSel = $('turnSel'), dirSel = $('dirSel'), cmapSel = $('cmapSel');
 var skipInt = $('skipInt'), axesToggle = $('axesToggle');
 var drawBtn = $('drawBtn'), addBtn = $('addBtn'), replayBtn = $('replayBtn'), finishBtn = $('finishBtn');
 var linkBtn = $('linkBtn'), videoBtn = $('videoBtn'), marathonBtn = $('marathonBtn');
+var fmtSel = $('fmtSel'), gifQual = $('gifQual'), gifQualRow = $('gifQualRow');
 var numarathon = false, betIdx = -1;
 
 var MAX_EXPR = 6;
@@ -940,7 +955,7 @@ function savePoster(card) {
   }, 'image/png');
 }
 
-/* ================= video export (all panels together) ================= */
+/* ================= animation export (all panels together): GIF or video ================= */
 var exp = null;
 
 function abortExport() {
@@ -948,32 +963,26 @@ function abortExport() {
   exp.aborted = true;
   cancelAnimationFrame(exp.raf);
   speedOverride = 0;
-  try { exp.recorder.stop(); } catch (e) { /* already stopped */ }
+  try { exp.recorder.stop(); } catch (e) { /* already stopped, or a GIF job (no recorder) */ }
 }
 
-function exportVideo() {
-  if (exp || !cards.length) return;
-  if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) {
-    setStatus('This browser cannot record video from a canvas. Try a recent Chrome, Edge, Firefox or Safari.', 7000);
-    return;
-  }
-  var mime = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4']
-    .filter(function (m) { return MediaRecorder.isTypeSupported(m); })[0];
-  if (!mime) { setStatus('No supported video format found in this browser.', 7000); return; }
-
-  var n = cards.length;
+/* Builds the export canvas: title bar, one white tile per walk, footer.
+   direct = true  -> every tile is painted afresh at any progress and any size (used for GIF, sharp at export size)
+   direct = false -> tiles are copied from the live canvases (used for the real-time video recorder) */
+function makeComposer(list, cell, direct, axes) {
+  var n = list.length;
   var cols = n === 1 ? 1 : (n <= 4 ? 2 : 3), rows = Math.ceil(n / cols);
-  var cell = n === 1 ? 720 : (n <= 4 ? 520 : 400);
   var gap = 24, head = 46, foot = 44, top = 70, bottom = 60, cellH = head + cell + foot;
   var W = gap + cols * (cell + gap), H = top + rows * (cellH + gap) + bottom;
   W += W % 2; H += H % 2;
-
   var cv = document.createElement('canvas');
   cv.width = W; cv.height = H;
-  var cx = cv.getContext('2d');
-  var maxN = maxDigits();
+  var cx = cv.getContext('2d', direct ? { willReadFrequently: true } : undefined);
+  var maxN = list.reduce(function (m, c) { return Math.max(m, c.digits.length); }, 0);
+  var fits = direct ? list.map(function (c) { return fit(c, cell); }) : null;
 
-  function composite() {
+  function composite(p) {
+    var prog = p == null ? progress : p;
     cx.fillStyle = '#ECEFF1'; cx.fillRect(0, 0, W, H);
     cx.textBaseline = 'middle';
     cx.textAlign = 'left'; cx.fillStyle = '#16222E'; cx.font = '800 28px ' + FONT;
@@ -983,26 +992,68 @@ function exportVideo() {
     cx.fillText('by Himanshu Sharma', gap + tw + 12, top / 2 + 6);
     cx.textAlign = 'right'; cx.fillStyle = '#506070'; cx.font = '500 18px ' + FONT;
     cx.fillText('phymanshu.github.io', W - gap, top / 2 + 4);
-    cards.forEach(function (c, i) {
+    var dist = [], plen = [];
+    list.forEach(function (c, i) {
       var x = gap + (i % cols) * (cell + gap), y = top + Math.floor(i / cols) * (cellH + gap);
       cx.fillStyle = '#fff'; rr(cx, x, y, cell, cellH, 22); cx.fill();
       cx.textAlign = 'left'; cx.fillStyle = '#16222E'; cx.font = '700 20px ' + FONT;
+      cx.textBaseline = 'middle';
       cx.fillText(ellipsize(cx, c.label, cell - 28), x + 14, y + head / 2 + 2);
-      cx.drawImage(c.canvas, x, y + head, cell, cell);
+      if (direct) {
+        var N = c.digits.length;
+        cx.save();
+        cx.translate(x, y + head);
+        var res = paint(cx, cell, c, fits[i], prog, { lwScale: cell / (c.size || 300), tip: true, axes: axes });
+        cx.restore();
+        var full = Math.min(Math.floor(prog), N), frac = Math.min(prog, N) - full;
+        dist[i] = Math.hypot(res.wx, res.wy);
+        plen[i] = c.pre[full] + (full < N ? frac * (c.digits.charCodeAt(full) - 48) : 0);
+      } else {
+        cx.drawImage(c.canvas, x, y + head, cell, cell);
+        dist[i] = c.tipDist; plen[i] = c.tipPath;
+      }
+      cx.textAlign = 'left'; cx.textBaseline = 'middle';
       cx.fillStyle = '#506070'; cx.font = '500 17px ' + FONT;
-      cx.fillText('distance ' + fmt(c.tipDist) + ' u   ·   path ' + fmt(c.tipPath) + ' u', x + 14, y + head + cell + foot / 2);
+      cx.fillText('distance ' + fmt(dist[i]) + ' u   ·   path ' + fmt(plen[i]) + ' u', x + 14, y + head + cell + foot / 2);
     });
     var msg = '1 u = the step for digit 1';
-    if (numarathon && n > 1 && progress >= maxN) {
-      var lead = cards.reduce(function (a, b) { return b.tipDist > a.tipDist ? b : a; });
-      msg = '👑 ' + lead.label + ' travelled farthest (' + fmt(lead.tipDist) + ' u)';
+    if (numarathon && n > 1 && prog >= maxN) {
+      var lead = 0;
+      dist.forEach(function (d, i) { if (d > dist[lead]) lead = i; });
+      msg = '👑 ' + list[lead].label + ' travelled farthest (' + fmt(dist[lead]) + ' u)';
     }
     cx.textAlign = 'center'; cx.fillStyle = '#16222E'; cx.font = '600 20px ' + FONT;
     cx.fillText(ellipsize(cx, msg, W - 2 * gap), W / 2, H - bottom / 2);
   }
+  return { cv: cv, cx: cx, W: W, H: H, maxN: maxN, composite: composite };
+}
+
+function download(blob, name) {
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+}
+function sizeLabel(bytes) { return bytes < 1048576 ? Math.max(1, Math.round(bytes / 1024)) + ' KB' : (bytes / 1048576).toFixed(1) + ' MB'; }
+
+function exportVideo() {
+  if (exp || !cards.length) return;
+  if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) {
+    setStatus('This browser cannot record video from a canvas. Try a recent Chrome, Edge, Firefox or Safari, or save a GIF instead.', 7000);
+    return;
+  }
+  var mime = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4']
+    .filter(function (m) { return MediaRecorder.isTypeSupported(m); })[0];
+  if (!mime) { setStatus('No supported video format found in this browser. Try saving a GIF instead.', 7000); return; }
+
+  var n = cards.length;
+  var cell = n === 1 ? 720 : (n <= 4 ? 520 : 400);
+  var comp = makeComposer(cards, cell, false);
+  var maxN = comp.maxN, composite = comp.composite;
 
   var chunks = [];
-  var rec = new MediaRecorder(cv.captureStream(30), { mimeType: mime, videoBitsPerSecond: 5000000 });
+  var rec = new MediaRecorder(comp.cv.captureStream(30), { mimeType: mime, videoBitsPerSecond: 5000000 });
   var state = { recorder: rec, raf: 0, aborted: false };
   exp = state;
   rec.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
@@ -1012,11 +1063,7 @@ function exportVideo() {
     if (exp === state) exp = null;
     if (state.aborted) { setStatus('Recording cancelled.'); return; }
     var blob = new Blob(chunks, { type: mime.split(';')[0] });
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'digitwalker-' + slug(cards.map(function (c) { return c.label; }).join('_vs_')) + (mime.indexOf('mp4') >= 0 ? '.mp4' : '.webm');
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+    download(blob, 'digitwalker-' + slug(cards.map(function (c) { return c.label; }).join('_vs_')) + (mime.indexOf('mp4') >= 0 ? '.mp4' : '.webm'));
     setStatus('Animation saved (' + (mime.indexOf('mp4') >= 0 ? 'MP4' : 'WebM') + ').', 6000);
   };
 
@@ -1037,6 +1084,225 @@ function exportVideo() {
     setStatus('Recording… ' + Math.min(100, Math.round(progress / maxN * 100)) + '%', 0);
     state.raf = requestAnimationFrame(tick);
   })(performance.now());
+}
+
+/* ================= GIF encoder (no libraries; adaptive palette, frame differencing) ================= */
+
+/* Median-cut palette from the pixels of one finished frame. rgba32 = Uint32Array view of RGBA pixels (little-endian). */
+function buildPalette(rgba32, maxColors) {
+  var hist = new Map(), i, v, n = rgba32.length;
+  for (i = 0; i < n; i++) { v = rgba32[i]; hist.set(v, (hist.get(v) || 0) + 1); }
+  var all = [];
+  hist.forEach(function (cnt, key) {
+    all.push({ r: key & 255, g: (key >>> 8) & 255, b: (key >>> 16) & 255, n: cnt });
+  });
+  function mkBox(arr) {
+    var r0 = 255, r1 = 0, g0 = 255, g1 = 0, b0 = 255, b1 = 0, t = 0, j, c;
+    for (j = 0; j < arr.length; j++) {
+      c = arr[j]; t += c.n;
+      if (c.r < r0) r0 = c.r; if (c.r > r1) r1 = c.r;
+      if (c.g < g0) g0 = c.g; if (c.g > g1) g1 = c.g;
+      if (c.b < b0) b0 = c.b; if (c.b > b1) b1 = c.b;
+    }
+    var rr = (r1 - r0) * 0.7, gg = (g1 - g0), bb = (b1 - b0) * 0.5;      // eye is most sensitive to green
+    var ch = rr >= gg && rr >= bb ? 'r' : (gg >= bb ? 'g' : 'b');
+    return { arr: arr, total: t, ch: ch, range: Math.max(rr, gg, bb) };
+  }
+  var boxes = [mkBox(all)];
+  while (boxes.length < maxColors) {
+    var bi = -1, bs = 0, k, s;
+    for (k = 0; k < boxes.length; k++) {
+      if (boxes[k].arr.length < 2) continue;
+      s = boxes[k].range * Math.pow(boxes[k].total, 0.3);
+      if (s > bs) { bs = s; bi = k; }
+    }
+    if (bi < 0) break;
+    var b = boxes[bi], arr = b.arr, ch = b.ch;
+    arr.sort(function (p, q) { return p[ch] - q[ch]; });
+    var half = b.total / 2, acc = 0, cut = 1, j;
+    for (j = 0; j < arr.length - 1; j++) { acc += arr[j].n; cut = j + 1; if (acc >= half) break; }
+    boxes.splice(bi, 1, mkBox(arr.slice(0, cut)), mkBox(arr.slice(cut)));
+  }
+  var bytes = new Uint8Array(768);
+  boxes.forEach(function (bx, idx) {
+    var dom = null, sr = 0, sg = 0, sb = 0, c, m;
+    for (m = 0; m < bx.arr.length; m++) {
+      c = bx.arr[m];
+      sr += c.r * c.n; sg += c.g * c.n; sb += c.b * c.n;
+      if (!dom || c.n > dom.n) dom = c;
+    }
+    if (dom.n * 2 >= bx.total) { bytes[idx * 3] = dom.r; bytes[idx * 3 + 1] = dom.g; bytes[idx * 3 + 2] = dom.b; }   // keep dominant colours (white, panel grey) exact
+    else { bytes[idx * 3] = Math.round(sr / bx.total); bytes[idx * 3 + 1] = Math.round(sg / bx.total); bytes[idx * 3 + 2] = Math.round(sb / bx.total); }
+  });
+  return { bytes: bytes, count: boxes.length };
+}
+
+/* nearest palette entry for a packed RGBA pixel (memoised) */
+function makeQuantizer(pal) {
+  var cache = new Map(), p = pal.bytes, cnt = pal.count;
+  return function (key) {
+    var hit = cache.get(key);
+    if (hit !== undefined) return hit;
+    var r = key & 255, g = (key >>> 8) & 255, b = (key >>> 16) & 255, best = 0, bd = 1e12, i, dr, dg, db, d;
+    for (i = 0; i < cnt; i++) {
+      dr = p[i * 3] - r; dg = p[i * 3 + 1] - g; db = p[i * 3 + 2] - b;
+      d = 3 * dr * dr + 4 * dg * dg + 2 * db * db;
+      if (d < bd) { bd = d; best = i; if (d === 0) break; }
+    }
+    cache.set(key, best);
+    return best;
+  };
+}
+
+/* pixels -> palette indices; unchanged pixels reuse the previous frame's result */
+function quantizeFrame(d32, prev32, prevIdx, idx, q) {
+  var n = d32.length, last = -1, lastIdx = 0, v, i;
+  for (i = 0; i < n; i++) {
+    v = d32[i];
+    if (prev32 !== null && v === prev32[i]) { idx[i] = prevIdx[i]; continue; }
+    if (v !== last) { last = v; lastIdx = q(v); }
+    idx[i] = lastIdx;
+  }
+}
+
+/* GIF variable-width LZW; returns min-code-size byte + data sub-blocks + terminator */
+function lzwEncode(index) {
+  var minCode = 8, clear = 256, eoi = 257;
+  var out = new Uint8Array(index.length * 2 + 1024), p = 0;
+  out[p++] = minCode;
+  var sub = p++;
+  var next = eoi + 1, size = minCode + 1, shift = 0, cur = 0;
+  var HS = 9973, keys = new Int32Array(HS), vals = new Int32Array(HS);
+  function put(code) {
+    cur |= code << shift; shift += size;
+    while (shift >= 8) {
+      out[p++] = cur & 255; cur >>>= 8; shift -= 8;
+      if (p === sub + 256) { out[sub] = 255; sub = p++; }
+    }
+  }
+  var ib = index[0], i, k, key, h;
+  put(clear);
+  for (i = 1; i < index.length; i++) {
+    k = index[i];
+    key = ((ib << 8) | k) + 1;
+    h = (Math.imul(key, -1640531535) >>> 0) % HS;
+    while (keys[h] !== 0 && keys[h] !== key) h = (h + 1) % HS;
+    if (keys[h] === key) { ib = vals[h]; continue; }
+    put(ib);
+    if (next === 4096) { put(clear); next = eoi + 1; size = minCode + 1; keys.fill(0); }
+    else { if (next >= (1 << size)) size++; keys[h] = key; vals[h] = next++; }
+    ib = k;
+  }
+  put(ib); put(eoi);
+  while (shift > 0) {
+    out[p++] = cur & 255; cur >>>= 8; shift -= 8;
+    if (p === sub + 256) { out[sub] = 255; sub = p++; }
+  }
+  if (sub + 1 === p) out[sub] = 0;
+  else { out[sub] = p - sub - 1; out[p++] = 0; }
+  return out.slice(0, p);
+}
+
+/* Writes frames as pieces; each frame after the first stores only the rectangle that changed */
+function GifEncoder(w, h, palBytes, transIdx) {
+  this.w = w; this.h = h; this.t = transIdx; this.parts = []; this.bytes = 0;
+  var hd = new Uint8Array(13 + 768 + 19), p = 0, s = 'GIF89a', i;
+  for (i = 0; i < 6; i++) hd[p++] = s.charCodeAt(i);
+  hd[p++] = w & 255; hd[p++] = w >> 8; hd[p++] = h & 255; hd[p++] = h >> 8;
+  hd[p++] = 0xF7; hd[p++] = 0; hd[p++] = 0;                 // 256-colour global table
+  hd.set(palBytes, p); p += 768;
+  hd[p++] = 0x21; hd[p++] = 0xFF; hd[p++] = 0x0B;           // loop forever
+  s = 'NETSCAPE2.0';
+  for (i = 0; i < 11; i++) hd[p++] = s.charCodeAt(i);
+  hd[p++] = 3; hd[p++] = 1; hd[p++] = 0; hd[p++] = 0; hd[p++] = 0;
+  this.push(hd);
+}
+GifEncoder.prototype.push = function (u8) { this.parts.push(u8); this.bytes += u8.length; };
+GifEncoder.prototype.addFrame = function (idx, prev, delay) {
+  var w = this.w, h = this.h, t = this.t, x0 = 0, y0 = 0, bw = w, bh = h, sub, packed, x, y, o, i;
+  if (!prev) { sub = idx; packed = 0x04; }                  // first frame: everything, no transparency
+  else {
+    var minX = w, maxX = -1, minY = h, maxY = -1;
+    for (y = 0; y < h; y++) {
+      o = y * w;
+      for (x = 0; x < w; x++) {
+        if (idx[o + x] !== prev[o + x]) {
+          if (x < minX) minX = x; if (x > maxX) maxX = x;
+          if (y < minY) minY = y; maxY = y;
+        }
+      }
+    }
+    packed = 0x05;                                          // keep previous frame, index t is transparent
+    if (maxX < 0) { bw = 1; bh = 1; sub = new Uint8Array([t]); }
+    else {
+      x0 = minX; y0 = minY; bw = maxX - minX + 1; bh = maxY - minY + 1;
+      sub = new Uint8Array(bw * bh);
+      for (y = 0; y < bh; y++) {
+        o = (y0 + y) * w + x0;
+        for (x = 0; x < bw; x++) { i = o + x; sub[y * bw + x] = idx[i] === prev[i] ? t : idx[i]; }
+      }
+    }
+  }
+  var head = new Uint8Array([
+    0x21, 0xF9, 0x04, packed, delay & 255, delay >> 8, t, 0,
+    0x2C, x0 & 255, x0 >> 8, y0 & 255, y0 >> 8, bw & 255, bw >> 8, bh & 255, bh >> 8, 0
+  ]);
+  this.push(head);
+  this.push(lzwEncode(sub));
+};
+GifEncoder.prototype.finish = function () { this.push(new Uint8Array([0x3B])); return this.parts; };
+
+
+/* GIF export: frames are painted one by one at a fixed frame rate (not recorded in real time),
+   so the result is smooth even on a slow machine. */
+async function exportGif() {
+  if (exp || !cards.length) return;
+  var list = cards.slice(), n = list.length, hi = gifQual.value === 'hi';
+  var cell = hi ? (n === 1 ? 800 : (n <= 4 ? 600 : 440)) : (n === 1 ? 600 : (n <= 4 ? 440 : 340));
+  var axes = axesToggle.checked;
+  var state = { recorder: null, raf: 0, aborted: false };
+  exp = state;
+  videoBtn.disabled = true;
+  var tick = function () { return new Promise(function (r) { setTimeout(r, 0); }); };
+  try {
+    setStatus('Preparing GIF…', 0);
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    await tick();
+    var comp = makeComposer(list, cell, true, axes);
+    var W = comp.W, H = comp.H, cx = comp.cx, maxN = comp.maxN;
+
+    // one palette, tuned on the finished picture (contains every colour the animation will use)
+    comp.composite(1e9);
+    var pal = buildPalette(new Uint32Array(cx.getImageData(0, 0, W, H).data.buffer), 255);
+    var quant = makeQuantizer(pal);
+    var enc = new GifEncoder(W, H, pal.bytes, 255);          // index 255 = "unchanged" (transparent)
+
+    var FPS = 20, DELAY = 5;                                  // 5/100 s per frame
+    var rate = Math.max(parseFloat(speedRange.value), maxN / 10);   // digits per second, at most ~10 s of drawing
+    var frames = Math.max(2, Math.ceil(maxN / rate * FPS));
+    var idx = new Uint8Array(W * H), prevIdx = null, prev32 = null;
+
+    for (var k = 0; k <= frames; k++) {
+      if (state.aborted) throw new Error('aborted');
+      comp.composite(Math.min(maxN, k * rate / FPS));
+      var d32 = new Uint32Array(cx.getImageData(0, 0, W, H).data.buffer);
+      quantizeFrame(d32, prev32, prevIdx, idx, quant);
+      enc.addFrame(idx, prevIdx, k === frames ? 200 : DELAY);   // rest 2 s on the finished walk, then loop
+      var spare = prevIdx; prevIdx = idx; idx = spare || new Uint8Array(W * H);
+      prev32 = d32;
+      setStatus('Making GIF… ' + Math.round(k / frames * 100) + '%', 0);
+      await tick();
+    }
+    var blob = new Blob(enc.finish(), { type: 'image/gif' });
+    download(blob, 'digitwalker-' + slug(list.map(function (c) { return c.label; }).join('_vs_')) + '.gif');
+    setStatus('GIF saved (' + sizeLabel(blob.size) + ', ' + W + '×' + H + ').', 7000);
+  } catch (err) {
+    if (state.aborted) setStatus('GIF cancelled.');
+    else { console.error(err); setStatus('Could not make the GIF: ' + (err && err.message ? err.message : err), 8000); }
+  } finally {
+    videoBtn.disabled = false;
+    if (exp === state) exp = null;
+  }
 }
 
 /* ================= shareable URL ================= */
@@ -1217,7 +1483,14 @@ marathonBtn.addEventListener('click', function () {
   buildRace();
   if (numarathon && cards.length >= 2) { abortExport(); startAnimation(); }
 });
-videoBtn.addEventListener('click', exportVideo);
+videoBtn.addEventListener('click', function () { if (fmtSel.value === 'gif') exportGif(); else exportVideo(); });
+function syncFormat() {
+  var gif = fmtSel.value === 'gif';
+  videoBtn.textContent = gif ? 'Save GIF' : 'Save video';
+  gifQualRow.hidden = !gif;
+}
+fmtSel.addEventListener('change', syncFormat);
+syncFormat();
 
 speedRange.addEventListener('input', function () { speedVal.textContent = speedRange.value + '/s'; });
 speedRange.addEventListener('change', syncUrl);
@@ -1236,8 +1509,8 @@ function reshape() {
 turnSel.addEventListener('change', reshape);
 dirSel.addEventListener('change', reshape);
 // pure re-paint
-cmapSel.addEventListener('change', function () { syncUrl(); cards.forEach(recolor); renderAll(); });
-axesToggle.addEventListener('change', function () { syncUrl(); renderAll(); });
+cmapSel.addEventListener('change', function () { abortExport(); syncUrl(); cards.forEach(recolor); renderAll(); });
+axesToggle.addEventListener('change', function () { abortExport(); syncUrl(); renderAll(); });
 
 var resizeTimer = 0;
 window.addEventListener('resize', function () {
