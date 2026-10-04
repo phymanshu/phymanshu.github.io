@@ -155,6 +155,12 @@ button.on:hover{background:rgba(22,34,46,.06);color:var(--ink)}
 .hof-form input:focus{background:#fff;box-shadow:inset 0 0 0 2px var(--signal-bright);outline:none}
 #hofExpr{flex:2 1 12rem}
 #hofName{flex:1 1 7rem;font-family:var(--sans)}
+.hof-pad{display:flex;flex-direction:column;gap:.3rem}
+.pad-row{display:flex;flex-wrap:wrap;gap:.3rem}
+.hof-pad .key{flex:1 1 2.05rem;min-width:2.05rem;max-width:4.6rem;padding:.42rem .1rem;font-size:.8rem;border-radius:.6rem}
+.hof-pad .key.irr{background:#FFF1F6;color:var(--signal);box-shadow:inset 0 0 0 1.5px #FFD3E2}
+.hof-pad .key.irr:hover{background:#FFE3EE}
+.hof-pad .key.wide{flex:1.6 1 3rem;max-width:6.5rem}
 .hof-msg{margin:0;font:600 .85rem/1.45 var(--sans);color:var(--ink);min-height:1.2em}
 .hof-msg.bad{color:var(--signal)}
 .hof-table{width:100%;border-collapse:collapse;table-layout:fixed;font:500 .8125rem var(--sans)}
@@ -321,6 +327,7 @@ footer a:hover{color:var(--signal)}
           <input id="hofName" type="text" placeholder="nickname" maxlength="24" autocomplete="off" aria-label="Your nickname (shown publicly)">
           <button class="primary" id="hofGo" type="button">Check &amp; enter</button>
         </div>
+        <div class="hof-pad" id="hofPad" role="group" aria-label="Number keypad for the Hall of Fame"></div>
         <p class="hof-msg" id="hofMsg" role="status" aria-live="polite"></p>
         <table class="hof-table">
           <thead><tr><th class="rk">#</th><th class="num">Number</th><th class="by">Introduced by</th><th class="dist">Distance</th><th class="go"></th></tr></thead>
@@ -1775,6 +1782,76 @@ function replayRanked(expr) {
   plots.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
 }
 
+/* ---- click-to-build keypad for the Hall of Fame box ---- */
+/* The parser reads "2e+1" as scientific notation (=20) and "pie" as an unknown name, so wherever two
+   values would touch we put an explicit * between them. */
+function hofInsert(text) {
+  var el = hofExpr;
+  var s = el.selectionStart == null ? el.value.length : el.selectionStart;
+  var e = el.selectionEnd == null ? s : el.selectionEnd;
+  var before = el.value.slice(0, s), after = el.value.slice(e);
+  var prev = before.replace(/\s+$/, '').slice(-1), next = after.replace(/^\s+/, '').charAt(0);
+  var first = text.charAt(0), last = text.charAt(text.length - 1);
+  var startsValue = /[A-Za-z0-9.(]/.test(first), endsValue = /[A-Za-z0-9.)]/.test(last);
+  var pre = '', post = '';
+  if (prev && /[0-9.)!A-Za-z]/.test(prev) && startsValue && !(/[0-9.]/.test(prev) && /[0-9.]/.test(first))) pre = '*';
+  if (next && /[A-Za-z0-9.(]/.test(next) && endsValue && !(/[0-9.]/.test(last) && /[0-9.]/.test(next))) post = '*';
+  var ins = pre + text + post;
+  el.value = before + ins + after;
+  var pos = before.length + pre.length + text.length;
+  hofPlaceCaret(pos);
+}
+function hofBackspace() {
+  var el = hofExpr;
+  var s = el.selectionStart == null ? el.value.length : el.selectionStart;
+  var e = el.selectionEnd == null ? s : el.selectionEnd;
+  if (s === e) {
+    var m = /(?:sqrt\(|ln\(|log\(|exp\(|sin\(|cos\(|tan\(|abs\(|phi|pi|\*)$/.exec(el.value.slice(0, s));
+    s = Math.max(0, s - (m ? m[0].length : 1));
+  }
+  el.value = el.value.slice(0, s) + el.value.slice(e);
+  hofPlaceCaret(s);
+}
+function hofPlaceCaret(pos) {
+  // on touch screens do not focus the box: that would pop up the phone keyboard over the keypad
+  var touch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+  if (!touch) hofExpr.focus();
+  try { hofExpr.setSelectionRange(pos, pos); } catch (err) { /* ignore */ }
+}
+
+// [label, text or action, kind, title]
+var HOF_KEYS = [
+  [['π', 'pi', 'irr', 'pi'], ['e', 'e', 'irr', 'Euler’s number e'], ['φ', 'phi', 'irr', 'golden ratio'],
+   ['√2', 'sqrt(2)', 'irr', 'square root of 2'], ['√3', 'sqrt(3)', 'irr', 'square root of 3'], ['√5', 'sqrt(5)', 'irr', 'square root of 5'],
+   ['ln 2', 'ln(2)', 'irr', 'natural log of 2']],
+  [['√', 'sqrt(', 'fn', 'square root of …'], ['ln', 'ln(', 'fn', 'natural log of …'], ['exp', 'exp(', 'fn', 'e to the power …'],
+   ['sin', 'sin(', 'fn', 'sine (radians)'], ['cos', 'cos(', 'fn', 'cosine (radians)'], ['xʸ', '^', 'op', 'power'],
+   ['(', '(', 'op'], [')', ')', 'op']],
+  [['+', '+', 'op', 'plus'], ['−', '-', 'op', 'minus'], ['×', '*', 'op', 'times'], ['÷', '/', 'op', 'divided by'],
+   ['⌫', '@BACK', 'act wide', 'backspace'], ['AC', '@CLEAR', 'act wide', 'clear']],
+  [['1', '1', 'num'], ['2', '2', 'num'], ['3', '3', 'num'], ['4', '4', 'num'], ['5', '5', 'num'],
+   ['6', '6', 'num'], ['7', '7', 'num'], ['8', '8', 'num'], ['9', '9', 'num'], ['0', '0', 'num'], ['.', '.', 'num']]
+];
+function hofBuildPad() {
+  var pad = $('hofPad');
+  HOF_KEYS.forEach(function (row) {
+    var r = document.createElement('div'); r.className = 'pad-row';
+    row.forEach(function (k) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'key ' + k[2]; b.textContent = k[0];
+      b.setAttribute('aria-label', k[3] || k[0]); if (k[3]) b.title = k[3];
+      b.addEventListener('mousedown', function (ev) { ev.preventDefault(); });   // keep the caret in the box
+      b.addEventListener('click', function () {
+        if (k[1] === '@BACK') hofBackspace();
+        else if (k[1] === '@CLEAR') { hofExpr.value = ''; hofPlaceCaret(0); }
+        else hofInsert(k[1]);
+      });
+      r.appendChild(b);
+    });
+    pad.appendChild(r);
+  });
+}
+
 function hofInit() {
   $('hofN').textContent = String(RANK_N);
   var me = lsGet(LS_ME);
@@ -1785,6 +1862,7 @@ function hofInit() {
   hofName.value = hofMe.name;
   hofExpr.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); hofSubmit(); } });
   hofName.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); hofSubmit(); } });
+  hofBuildPad();
   hofGo.addEventListener('click', hofSubmit);
   $('hofRefresh').addEventListener('click', function () { hofSay(''); hofRefresh(false); });
   hofRender();
