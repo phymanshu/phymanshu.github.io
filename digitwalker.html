@@ -386,6 +386,62 @@ footer a:hover{color:var(--signal)}
   .panel-group{padding:1rem}
   .race-row{grid-template-columns:1.1rem minmax(3rem,5rem) 1fr 4rem}
 }
+
+/* --- look, turn angle and sound controls --- */
+.panel-group .wide-range{width:100%;accent-color:var(--signal-bright);cursor:pointer}
+.sub-label{font:600 .8125rem var(--sans);color:var(--muted)}
+.bg-block{display:flex;flex-direction:column;gap:.45rem}
+.swatch-wrap{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem}
+.hint{margin:0;font:400 .75rem/1.45 var(--sans);color:var(--muted)}
+.themes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.35rem}
+button.theme{
+  display:flex;flex-direction:column;align-items:flex-start;gap:.3rem;text-align:left;
+  padding:.4rem .5rem .45rem;border-radius:.75rem;font:700 .7rem/1.1 var(--sans);
+  box-shadow:inset 0 0 0 1.5px var(--rule);
+}
+button.theme i{display:block;width:100%;height:.35rem;border-radius:1rem}
+button.theme:hover{transform:translateY(-1px)}
+button.theme[aria-pressed="true"]{box-shadow:inset 0 0 0 2.5px var(--signal-bright)}
+button.swatch[aria-pressed="true"]{box-shadow:inset 0 0 0 1.5px var(--rule),0 0 0 2px #fff,0 0 0 4px var(--signal-bright)}
+@media (prefers-reduced-motion:reduce){button.theme:hover{transform:none}}
+
+/* --- compact side panel: one tabbed card instead of four tall ones --- */
+.layout > .panel{gap:.8rem}
+.layout .panel-group{padding:.85rem 1rem;gap:.55rem}
+.fold{background:#fff;border-radius:1.25rem;padding:.7rem 1rem;box-shadow:inset 0 0 0 1.5px var(--rule)}
+.fold summary{font:700 .8125rem var(--sans);letter-spacing:.02em;color:var(--muted);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.fold summary::-webkit-details-marker{display:none}
+.fold summary::after{content:"+";font:600 1.1rem/1 var(--sans);color:var(--muted)}
+.fold[open] summary::after{content:"–"}
+.fold[open] summary{margin-bottom:.7rem}
+.tabbed{padding:.6rem .75rem .85rem !important}
+.subtabs{display:flex;gap:.2rem;background:var(--paper);border-radius:2rem;padding:.2rem;box-shadow:inset 0 0 0 1.5px var(--rule)}
+.subtabs button{flex:1;padding:.4rem .2rem;font-size:.78rem;background:transparent;color:var(--muted);border-radius:2rem}
+.subtabs button:hover{background:rgba(22,34,46,.06);color:var(--ink)}
+.subtabs button[aria-selected="true"]{background:var(--deep);color:var(--on-deep)}
+.pane{display:flex;flex-direction:column;gap:.55rem;padding:.35rem .25rem 0}
+.pane-head{display:flex;align-items:center;justify-content:space-between}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.pair-walk{grid-template-columns:.75fr 1.25fr}
+#bgChips{display:contents}
+input#bgInput{width:1.5rem;height:1.5rem}
+.stack{display:flex;flex-direction:column;gap:.25rem;min-width:0;font:600 .78rem var(--sans);color:var(--muted)}
+.stack select{
+  width:100%;font:650 .8rem var(--sans);color:var(--ink);background:var(--paper);border:none;border-radius:1.5rem;
+  padding:.4rem .7rem;cursor:pointer;
+}
+.toggle.compact{padding:.38rem .8rem;font-size:.78rem;flex:0 0 auto}
+.btn-row button.small{padding:.45rem .8rem;font-size:.8rem}
+button.swatch{width:1.2rem;height:1.2rem}
+.swatch-wrap{gap:.32rem}
+
+.sweep-row{display:flex;align-items:center;justify-content:space-between;gap:.6rem}
+.sweep-row .mini input{
+  width:4.2rem;font:650 .85rem var(--mono);color:var(--ink);background:var(--paper);border:none;border-radius:1rem;
+  padding:.35rem .5rem;box-shadow:inset 0 0 0 1.5px var(--rule);min-width:0;
+}
+.sweep-row .mini input:focus{background:#fff;box-shadow:inset 0 0 0 2px var(--signal-bright);outline:none}
+button[aria-pressed="true"]#sweepBtn{background:var(--signal-bright);color:var(--deep);box-shadow:none}
 </style>
 </head>
 <body>
@@ -443,7 +499,7 @@ footer a:hover{color:var(--signal)}
         <div class="hof-foot"><span id="hofCount"></span><span id="hofNote"></span></div>
       </section>
 
-      <p class="note" id="note">Every digit is a step length: walk that far, turn, repeat. Lines start dark and get lighter towards the end of the number. Distances are in units (u), where 1 u is the step for the digit 1.</p>
+      <p class="note" id="note">Every digit is a step length: walk that far, turn, repeat. Colours change along the walk, from the first digit to the last. Distances are in units (u), where 1 u is the step for the digit 1.</p>
 
       <section class="poem" aria-label="Rational and irrational numbers">
         <h2>Two kinds of walkers</h2>
@@ -479,86 +535,179 @@ footer a:hover{color:var(--signal)}
         <div class="chips" id="chips" aria-label="Examples"></div>
       </div>
 
-      <div class="panel-group">
-        <h2 class="panel-title">Keypad</h2>
+      <details class="fold">
+        <summary>Keypad</summary>
         <div class="keypad" id="keypad" role="group" aria-label="Calculator keypad"></div>
-      </div>
+      </details>
 
-      <div class="panel-group">
-        <h2 class="panel-title">Walk</h2>
-        <div class="row-ctrl">
-          <label for="digitsSel">Digits</label>
-          <select id="digitsSel">
-            <option value="10">10</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-            <option value="100" selected>100</option>
-            <option value="250">250</option>
-            <option value="500">500</option>
-            <option value="1000">1000</option>
-          </select>
+      <div class="panel-group tabbed">
+        <div class="subtabs" role="tablist" aria-label="Settings">
+          <button type="button" role="tab" id="tab-btn-walk" data-pane="walk" aria-selected="true" aria-controls="pane-walk">Walk</button>
+          <button type="button" role="tab" id="tab-btn-look" data-pane="look" aria-selected="false" aria-controls="pane-look">Look</button>
+          <button type="button" role="tab" id="tab-btn-sound" data-pane="sound" aria-selected="false" aria-controls="pane-sound">Sound</button>
+          <button type="button" role="tab" id="tab-btn-share" data-pane="share" aria-selected="false" aria-controls="pane-share">Share</button>
         </div>
-        <div class="row-ctrl">
-          <label for="speedRange">Speed</label>
-          <input type="range" id="speedRange" min="2" max="80" step="1" value="12">
-          <span class="speed-val" id="speedVal">12/s</span>
-        </div>
-        <div class="row-ctrl">
-          <label for="turnSel">Turn</label>
-          <select id="turnSel">
-            <option value="90" selected>90°</option>
-            <option value="60">60°</option>
-            <option value="120">120°</option>
-            <option value="45">45°</option>
-            <option value="72">72°</option>
-            <option value="137.5077640500378">Golden angle</option>
-          </select>
-        </div>
-        <div class="row-ctrl">
-          <label for="dirSel">Direction</label>
-          <select id="dirSel">
-            <option value="ccw" selected>Anticlockwise</option>
-            <option value="cw">Clockwise</option>
-          </select>
-        </div>
-        <div class="row-ctrl">
-          <label for="cmapSel">Colours</label>
-          <select id="cmapSel">
-            <option value="viridis" selected>Viridis</option>
-            <option value="plasma">Plasma</option>
-            <option value="inferno">Inferno</option>
-          </select>
-        </div>
-        <label class="toggle"><input type="checkbox" id="skipInt"><span>Skip integer part</span></label>
-        <label class="toggle"><input type="checkbox" id="axesToggle" checked><span>Show axes</span></label>
-        <div class="btn-row">
-          <button class="ghost" id="replayBtn" type="button">Replay</button>
-          <button class="ghost" id="finishBtn" type="button">Finish</button>
-        </div>
-      </div>
 
-      <div class="panel-group">
-        <h2 class="panel-title">Share</h2>
-        <div class="row-ctrl">
-          <label for="fmtSel">Animation</label>
-          <select id="fmtSel">
-            <option value="gif" selected>GIF</option>
-            <option value="png">Still image (PNG)</option>
-            <option value="video">Video (WebM / MP4)</option>
-          </select>
+        <div class="pane" id="pane-walk" role="tabpanel" aria-labelledby="tab-btn-walk">
+          <div class="pair pair-walk">
+            <label class="stack">Digits
+              <select id="digitsSel">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100" selected>100</option>
+                <option value="250">250</option>
+                <option value="500">500</option>
+                <option value="1000">1000</option>
+              </select>
+            </label>
+            <label class="stack">Direction
+              <select id="dirSel">
+                <option value="ccw" selected>↺ Anticlockwise</option>
+                <option value="cw">↻ Clockwise</option>
+              </select>
+            </label>
+          </div>
+          <div class="row-ctrl">
+            <label for="speedRange">Speed</label>
+            <input type="range" id="speedRange" min="2" max="80" step="1" value="12">
+            <span class="speed-val" id="speedVal">12/s</span>
+          </div>
+          <div class="row-ctrl">
+            <label for="turnAngle">Turn angle</label>
+            <span class="angle-box"><input id="turnAngle" type="number" min="0" max="359" step="1" value="90" inputmode="numeric"><span>°</span></span>
+          </div>
+          <input class="wide-range" type="range" id="turnRange" min="0" max="359" step="1" value="90" aria-label="Turn angle slider">
+          <div class="chips" id="turnChips"></div>
+          <div class="sweep-row">
+            <button class="ghost small" id="sweepBtn" type="button" aria-pressed="false" title="Redraw the finished number at every angle, from 0° up to the maximum">▶ Sweep angle</button>
+            <label class="mini">0 → <input id="sweepMax" type="number" min="1" max="359" step="1" value="359" aria-label="Sweep up to this angle, in degrees">°</label>
+          </div>
+          <div class="btn-row">
+            <label class="toggle compact"><input type="checkbox" id="axesToggle" checked><span>Axes</span></label>
+            <button class="ghost small" id="replayBtn" type="button">Replay</button>
+            <button class="ghost small" id="finishBtn" type="button">Finish</button>
+          </div>
         </div>
-        <div class="row-ctrl" id="gifQualRow">
-          <label for="gifQual">Size</label>
-          <select id="gifQual">
-            <option value="std" selected>Standard</option>
-            <option value="hi">High (larger file)</option>
-          </select>
+
+        <div class="pane" id="pane-look" role="tabpanel" aria-labelledby="tab-btn-look" hidden>
+          <div class="pane-head"><span class="sub-label">Themes</span><button class="ghost small" id="randLook" type="button">🎲 Random</button></div>
+          <div class="themes" id="themes" role="group" aria-label="Colour and background themes"></div>
+          <div class="row-ctrl">
+            <label for="cmapSel">Line colours</label>
+            <select id="cmapSel">
+              <optgroup label="Scientific">
+                <option value="viridis" selected>Viridis</option>
+                <option value="plasma">Plasma</option>
+                <option value="inferno">Inferno</option>
+                <option value="magma">Magma</option>
+                <option value="cividis">Cividis</option>
+                <option value="turbo">Turbo (rainbow)</option>
+              </optgroup>
+              <optgroup label="Neon and glow">
+                <option value="neon">Neon</option>
+                <option value="synthwave">Synthwave</option>
+                <option value="aurora">Aurora</option>
+                <option value="cosmic">Cosmic</option>
+                <option value="ice">Ice</option>
+                <option value="ember">Ember</option>
+                <option value="matrix">Matrix</option>
+                <option value="cyber">Cyberpunk</option>
+                <option value="electric">Electric</option>
+                <option value="gold">Gold</option>
+                <option value="rainbow">Rainbow neon</option>
+              </optgroup>
+              <optgroup label="Soft">
+                <option value="sunset">Sunset</option>
+                <option value="ocean">Ocean</option>
+                <option value="forest">Forest</option>
+                <option value="candy">Candy</option>
+              </optgroup>
+              <optgroup label="One colour">
+                <option value="ink">Ink</option>
+                <option value="chalk">Chalk (for dark)</option>
+              </optgroup>
+              <option value="custom">Custom colours…</option>
+            </select>
+          </div>
+          <div class="row-ctrl" id="customRow" hidden>
+            <label for="c1Input">Gradient</label>
+            <span class="bg-box"><input type="color" id="c1Input" value="#ff2e93" aria-label="Start colour"><span>→</span><input type="color" id="c2Input" value="#00c2ff" aria-label="End colour"></span>
+          </div>
+          <div class="bg-block">
+            <span class="sub-label">Background colour</span>
+            <div class="swatch-wrap"><span class="swatch-wrap" id="bgChips"></span><input type="color" id="bgInput" value="#ffffff" aria-label="Background colour"></div>
+          </div>
+          <div class="pair">
+            <label class="stack">Backdrop
+              <select id="bgStyleSel">
+                <option value="solid" selected>Plain</option>
+                <option value="soft">Soft glow</option>
+                <option value="stars">Starfield</option>
+                <option value="nebula">Nebula</option>
+                <option value="aurora">Aurora</option>
+                <option value="grid">Neon grid</option>
+                <option value="dots">Dot matrix</option>
+                <option value="rays">Sunburst</option>
+              </select>
+            </label>
+            <label class="stack">Moving point
+              <select id="tipSel">
+                <option value="dot" selected>Simple dot</option>
+                <option value="orb">Glowing orb</option>
+                <option value="comet">Comet</option>
+                <option value="ring">Pulse ring</option>
+              </select>
+            </label>
+          </div>
+          <div class="row-ctrl">
+            <label for="glowRange">Glow</label>
+            <input type="range" id="glowRange" min="0" max="100" step="5" value="0">
+            <span class="speed-val" id="glowVal">off</span>
+          </div>
         </div>
-        <div class="btn-row">
-          <button class="ghost" id="linkBtn" type="button">Copy link</button>
-          <button class="ghost" id="videoBtn" type="button">Save GIF</button>
+
+        <div class="pane" id="pane-sound" role="tabpanel" aria-labelledby="tab-btn-sound" hidden>
+          <div class="row-ctrl">
+            <label for="sndSel">Instrument</label>
+            <select id="sndSel">
+              <option value="off">Off</option>
+              <option value="pluck">Pluck</option>
+              <option value="bell" selected>Bell</option>
+              <option value="synth">Neon synth</option>
+              <option value="arcade">Arcade</option>
+            </select>
+          </div>
+          <div class="row-ctrl">
+            <label for="volRange">Volume</label>
+            <input type="range" id="volRange" min="0" max="100" step="5" value="40">
+            <span class="speed-val" id="volVal">40%</span>
+          </div>
+          <p class="hint">Each digit sets the pitch. Above 16 digits/s it switches to a calm mode of about 6 notes a second, pitched by how far the walker is from the start. Sound starts after your first click or tap (browsers require that). Saved GIFs and videos are silent.</p>
         </div>
-        <p class="status" id="status" aria-live="polite"></p>
+
+        <div class="pane" id="pane-share" role="tabpanel" aria-labelledby="tab-btn-share" hidden>
+          <div class="pair">
+            <label class="stack">Save as
+              <select id="fmtSel">
+                <option value="gif" selected>GIF</option>
+                <option value="png">Still image (PNG)</option>
+                <option value="video">Video (WebM / MP4)</option>
+              </select>
+            </label>
+            <label class="stack" id="gifQualRow">Size
+              <select id="gifQual">
+                <option value="std" selected>Standard</option>
+                <option value="hi">High (larger file)</option>
+              </select>
+            </label>
+          </div>
+          <div class="btn-row">
+            <button class="ghost" id="linkBtn" type="button">Copy link</button>
+            <button class="ghost" id="videoBtn" type="button">Save GIF</button>
+          </div>
+          <p class="status" id="status" aria-live="polite"></p>
+        </div>
       </div>
 
     </div>
@@ -677,8 +826,10 @@ var LEADERBOARD = {
 var $ = function (id) { return document.getElementById(id); };
 var plots = $('plots'), exprList = $('exprList'), errorsEl = $('errors'), raceEl = $('race'), statusEl = $('status');
 var digitsSel = $('digitsSel'), speedRange = $('speedRange'), speedVal = $('speedVal');
-var turnSel = $('turnSel'), dirSel = $('dirSel'), cmapSel = $('cmapSel');
-var skipInt = $('skipInt'), axesToggle = $('axesToggle');
+var turnAngle = $('turnAngle'), turnRange = $('turnRange'), dirSel = $('dirSel'), cmapSel = $('cmapSel');
+var c1Input = $('c1Input'), c2Input = $('c2Input'), customRow = $('customRow'), bgInput = $('bgInput'), bgStyleSel = $('bgStyleSel');
+var glowRange = $('glowRange'), glowVal = $('glowVal'), tipSel = $('tipSel'), sndSel = $('sndSel'), volRange = $('volRange'), volVal = $('volVal');
+var skipInt = { checked: false, addEventListener: function () {} }, axesToggle = $('axesToggle');   // the "skip integer part" option was removed
 var drawBtn = $('drawBtn'), addBtn = $('addBtn'), replayBtn = $('replayBtn'), finishBtn = $('finishBtn');
 var linkBtn = $('linkBtn'), videoBtn = $('videoBtn'), marathonBtn = $('marathonBtn');
 var fmtSel = $('fmtSel'), gifQual = $('gifQual'), gifQualRow = $('gifQualRow');
@@ -715,11 +866,33 @@ var CMAPS = {
   forest:  ['#0b2b1b','#14452f','#1f6b45','#2f8f5b','#52b06a','#86cd78','#bfe58a','#eef8b0'],
   candy:   ['#ff2e93','#ff6ac1','#ffa6e7','#c8b6ff','#8fb8ff','#5fe3ff','#7affd9'],
   ink:     ['#16222e','#16222e'],
-  chalk:   ['#f4f1ea','#f4f1ea']
+  chalk:   ['#f4f1ea','#f4f1ea'],
+  /* neon and glow schemes: bright on dark backgrounds */
+  neon:      ['#00f5ff','#00b8ff','#7a5cff','#ff2bd6','#ff3d81','#ffd23f'],
+  synthwave: ['#2de2e6','#7b61ff','#c200fb','#ff2a6d','#ff6b35','#ffd319'],
+  aurora:    ['#00ff9d','#00e5c0','#00b8d9','#5b8cff','#a35bff','#ff6bd6'],
+  cosmic:    ['#3a1c71','#6a2bd9','#b44cff','#ff5fd2','#ffa6a6','#ffe29a','#ffffff'],
+  ice:       ['#2b6cff','#00b0ff','#4fe3ff','#a8f4ff','#e9fdff','#ffffff'],
+  ember:     ['#7a1510','#c8281a','#ff4d1c','#ff8a00','#ffc400','#fff3a0'],
+  matrix:    ['#008a3a','#00b34a','#00ff6a','#7dffa5','#d6ffe3'],
+  cyber:     ['#fcee0a','#ff9e00','#ff2a6d','#d100d1','#6c2bff','#05d9e8'],
+  electric:  ['#00ffd5','#00ff6a','#c6ff00','#ffe600','#ff8a00','#ff2e63'],
+  gold:      ['#a86b00','#d99a00','#f2b705','#ffd95a','#fff1b0','#ffffff']
 };
+(function () {                                   // rainbow neon: a full hue sweep at full saturation
+  function hsl(h) {
+    var a = 0.5 * 0.9 + 0.1, k = function (n) { var t = (n + h / 30) % 12; return a - 0.5 * 0.9 * Math.max(-1, Math.min(t - 3, 9 - t, 1)); };
+    return '#' + [k(0), k(8), k(4)].map(function (v) { var x = Math.round(v * 255).toString(16); return x.length < 2 ? '0' + x : x; }).join('');
+  }
+  var out = []; for (var h = 0; h <= 330; h += 30) out.push(hsl(h));
+  CMAPS.rainbow = out;
+})();
 function hexToRgb(h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
 var CMAP_RGB = {};
 Object.keys(CMAPS).forEach(function (k) { CMAP_RGB[k] = CMAPS[k].map(hexToRgb); });
+CMAP_RGB['~custom'] = [hexToRgb('#ff2e93'), hexToRgb('#00c2ff')];     // the two colours picked under "Custom two colours"
+function walkCmap() { return cmapSel.value === 'custom' ? '~custom' : cmapSel.value; }
+function syncCustom() { CMAP_RGB['~custom'] = [hexToRgb(c1Input.value), hexToRgb(c2Input.value)]; }
 function cmapColor(name, t) {
   var st = CMAP_RGB[name], pos = Math.max(0, Math.min(1, t)) * (st.length - 1);
   var i = Math.min(st.length - 2, Math.floor(pos)), f = pos - i, a = st[i], b = st[i + 1];
@@ -851,14 +1024,337 @@ function extractDigits(value, N, skipInteger) {
   return d;
 }
 
+/* ================= look: backgrounds, glow and moving-point styles ================= */
+var WALK_BGS = [['white', '#ffffff'], ['cream', '#f6f0e4'], ['blush', '#fff1f6'], ['mint', '#eaf8f1'], ['night', '#0e1520'], ['navy', '#0b1e3a'],
+                ['plum', '#2a1238'], ['ink black', '#05060a'], ['violet', '#12062b'], ['deep teal', '#031b1f'], ['wine', '#1c0610'],
+                ['moss', '#04150c'], ['charcoal', '#15171c']];
+/* a theme sets background colour, backdrop, line colours, glow and moving point in one click */
+var THEMES = [
+  { id: 'classic',   name: 'Classic',   bg: '#ffffff', style: 'solid',  cmap: 'viridis',   glow: 0,  tip: 'dot' },
+  { id: 'neon',      name: 'Neon',      bg: '#070b1a', style: 'grid',   cmap: 'neon',      glow: 70, tip: 'comet' },
+  { id: 'synth',     name: 'Synthwave', bg: '#14062b', style: 'rays',   cmap: 'synthwave', glow: 65, tip: 'orb' },
+  { id: 'aurora',    name: 'Aurora',    bg: '#04121f', style: 'aurora', cmap: 'aurora',    glow: 55, tip: 'orb' },
+  { id: 'cosmic',    name: 'Cosmic',    bg: '#05030f', style: 'nebula', cmap: 'cosmic',    glow: 60, tip: 'ring' },
+  { id: 'starlight', name: 'Starlight', bg: '#060a18', style: 'stars',  cmap: 'ice',       glow: 75, tip: 'orb' },
+  { id: 'ember',     name: 'Ember',     bg: '#120503', style: 'soft',   cmap: 'ember',     glow: 60, tip: 'comet' },
+  { id: 'matrix',    name: 'Matrix',    bg: '#020a04', style: 'dots',   cmap: 'matrix',    glow: 55, tip: 'ring' },
+  { id: 'cyber',     name: 'Cyber',     bg: '#0d0221', style: 'grid',   cmap: 'cyber',     glow: 80, tip: 'comet' },
+  { id: 'gold',      name: 'Gold',      bg: '#0b0b10', style: 'soft',   cmap: 'gold',      glow: 45, tip: 'orb' },
+  { id: 'rainbow',   name: 'Rainbow',   bg: '#05050a', style: 'stars',  cmap: 'rainbow',   glow: 90, tip: 'comet' },
+  { id: 'candy',     name: 'Candy',     bg: '#fff1f6', style: 'soft',   cmap: 'candy',     glow: 0,  tip: 'orb' }
+];
+var TAU = Math.PI * 2;
+
+function rgbArr(c) {                                            // '#rrggbb' or 'rgb(r,g,b)' -> [r,g,b]
+  if (c.charAt(0) === '#') return hexToRgb(c);
+  var m = /(\d+)\D+(\d+)\D+(\d+)/.exec(c);
+  return [+m[1], +m[2], +m[3]];
+}
+function mixC(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; }
+function rgbS(c) { return 'rgb(' + Math.round(c[0]) + ',' + Math.round(c[1]) + ',' + Math.round(c[2]) + ')'; }
+function rgbaS(c, a) { return 'rgba(' + Math.round(c[0]) + ',' + Math.round(c[1]) + ',' + Math.round(c[2]) + ',' + a + ')'; }
+function lum(c) { return (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) / 255; }
+function isDarkBg(hex) { return lum(hexToRgb(hex)) < 0.45; }
+function mulberry(seed) {                                        // tiny seeded random: the same stars every frame and every export
+  return function () {
+    seed = (seed + 0x6D2B79F5) | 0;
+    var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* ---- backdrops (static, so GIF and video frames stay small) ---- */
+function paintBg(c, S, style, bgHex, cmap) {
+  var bg = hexToRgb(bgHex), dark = lum(bg) < 0.45, rnd = mulberry(20260607), k = S / 460, i, j, x, y, r;
+  var acc = [0.12, 0.5, 0.88].map(function (t) { return rgbArr(cmapColor(cmap, t)); });
+  var ink = [22, 34, 46], black = [0, 0, 0];
+  c.globalAlpha = 1;
+  c.fillStyle = bgHex; c.fillRect(0, 0, S, S);
+  if (style === 'solid') return;
+
+  function radial(cx, cy, r1, col0, col1) {
+    var g = c.createRadialGradient(cx, cy, 0, cx, cy, r1);
+    g.addColorStop(0, col0); g.addColorStop(1, col1);
+    c.fillStyle = g; c.fillRect(0, 0, S, S);
+  }
+  function vignette(a) {
+    var g = c.createRadialGradient(S / 2, S / 2, S * 0.28, S / 2, S / 2, S * 0.78), edge = dark ? black : mixC(bg, black, 0.45);
+    g.addColorStop(0, rgbaS(edge, 0)); g.addColorStop(1, rgbaS(edge, a));
+    c.fillStyle = g; c.fillRect(0, 0, S, S);
+  }
+  function stars(count, maxR) {
+    for (i = 0; i < count; i++) {
+      x = rnd() * S; y = rnd() * S; r = (0.3 + rnd() * rnd() * maxR) * k;
+      var a = 0.25 + rnd() * 0.75, tint = rnd();
+      var col = dark ? (tint < 0.7 ? [255, 255, 255] : tint < 0.85 ? [170, 200, 255] : [255, 226, 170]) : ink;
+      c.fillStyle = rgbaS(col, dark ? a : (a * 0.3).toFixed(2));
+      c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill();
+    }
+  }
+  function sparkles(count) {                                     // a few larger four-point stars
+    c.lineWidth = Math.max(0.5, 0.7 * k);
+    for (i = 0; i < count; i++) {
+      x = rnd() * S; y = rnd() * S; var L = (3 + rnd() * 5) * k;
+      c.strokeStyle = rgbaS(dark ? [255, 255, 255] : ink, dark ? 0.55 : 0.16);
+      c.beginPath(); c.moveTo(x - L, y); c.lineTo(x + L, y); c.moveTo(x, y - L); c.lineTo(x, y + L); c.stroke();
+    }
+  }
+
+  if (style === 'soft') {
+    var inner = dark ? mixC(bg, acc[1], 0.3) : mixC(bg, [255, 255, 255], 0.75), outer = dark ? mixC(bg, black, 0.5) : mixC(bg, black, 0.07);
+    radial(S / 2, S * 0.45, S * 0.78, rgbS(inner), rgbS(outer));
+  } else if (style === 'stars') {
+    if (dark) radial(S / 2, S * 0.6, S * 0.8, rgbaS(acc[0], 0.1), rgbaS(acc[0], 0));
+    stars(Math.round(S * S / 1500), 1.7); sparkles(7);
+    if (dark) vignette(0.4);
+  } else if (style === 'nebula') {
+    for (j = 0; j < 6; j++) {
+      x = rnd() * S; y = rnd() * S; r = S * (0.3 + rnd() * 0.4);
+      var g = c.createRadialGradient(x, y, 0, x, y, r), col = acc[j % 3];
+      g.addColorStop(0, rgbaS(col, dark ? 0.38 : 0.2)); g.addColorStop(1, rgbaS(col, 0));
+      c.fillStyle = g; c.fillRect(0, 0, S, S);
+    }
+    stars(Math.round(S * S / 3200), 1.4); sparkles(4);
+    if (dark) vignette(0.35);
+  } else if (style === 'aurora') {
+    var pxs = 1;
+    try { pxs = Math.abs(c.getTransform().a) || 1; } catch (e) { /* very old browsers */ }
+    for (j = 0; j < 4; j++) {
+      var col2 = acc[j % 3], base = S * (0.1 + 0.17 * j), amp = S * (0.04 + rnd() * 0.05), fr = 1.1 + rnd() * 1.6, ph = rnd() * TAU, hgt = S * (0.42 + rnd() * 0.2);
+      var lg = c.createLinearGradient(0, base - amp, 0, base + hgt);
+      lg.addColorStop(0, rgbaS(col2, 0)); lg.addColorStop(0.3, rgbaS(col2, dark ? 0.55 : 0.3)); lg.addColorStop(1, rgbaS(col2, 0));
+      c.save();                                                // the curtain is drawn off-canvas; its blurred shadow lands here, which gives a soft edge
+      c.shadowColor = rgbaS(col2, 1); c.shadowBlur = S * 0.05 * pxs; c.shadowOffsetX = 3 * S * pxs;
+      c.translate(-3 * S, 0);
+      c.fillStyle = lg; c.beginPath(); c.moveTo(-S * 0.1, base + hgt);
+      for (x = -S * 0.1; x <= S * 1.1; x += S / 48) c.lineTo(x, base + amp * Math.sin(x / S * fr * TAU + ph));
+      c.lineTo(S * 1.1, base + hgt); c.closePath(); c.fill();
+      c.restore();
+    }
+    if (dark) { stars(Math.round(S * S / 5000), 1.2); vignette(0.35); }
+  } else if (style === 'grid') {
+    var cells = 16, st = S / cells;
+    if (dark) radial(S / 2, S / 2, S * 0.7, rgbaS(acc[0], 0.16), rgbaS(acc[0], 0));
+    for (i = 0; i <= cells; i++) {
+      var strong = i % 4 === 0;
+      c.strokeStyle = rgbaS(dark ? acc[1] : ink, dark ? (strong ? 0.3 : 0.12) : (strong ? 0.14 : 0.06));
+      c.lineWidth = Math.max(0.5, (strong ? 1 : 0.7) * k);
+      c.beginPath(); c.moveTo(i * st, 0); c.lineTo(i * st, S); c.moveTo(0, i * st); c.lineTo(S, i * st); c.stroke();
+    }
+    if (dark) vignette(0.45);
+  } else if (style === 'dots') {
+    var gap = S / 26;
+    c.fillStyle = rgbaS(dark ? acc[1] : ink, dark ? 0.26 : 0.14);
+    for (y = gap / 2; y < S; y += gap) for (x = gap / 2; x < S; x += gap) { c.beginPath(); c.arc(x, y, Math.max(0.6, 0.9 * k), 0, TAU); c.fill(); }
+    if (dark) vignette(0.5);
+  } else if (style === 'rays') {
+    var wedges = 28;
+    for (i = 0; i < wedges; i += 2) {
+      c.fillStyle = rgbaS(acc[(i / 2) % 3], dark ? 0.1 : 0.06);
+      c.beginPath(); c.moveTo(S / 2, S / 2);
+      c.arc(S / 2, S / 2, S * 1.1, i / wedges * TAU, (i + 1) / wedges * TAU); c.closePath(); c.fill();
+    }
+    if (dark) radial(S / 2, S / 2, S * 0.5, rgbaS(acc[2], 0.22), rgbaS(acc[2], 0));
+    if (dark) vignette(0.5);
+  }
+}
+
+var bgCache = {};
+function drawBackground(ctx, size, o) {
+  var sc = 1;
+  try { sc = Math.abs(ctx.getTransform().a) || 1; } catch (e) { /* very old browsers */ }
+  var px = Math.round(size * sc);
+  if (o.bgStyle === 'solid' || px > 1400) { paintBg(ctx, size, o.bgStyle, o.bg, o.cmap); return; }
+  var key = [o.bgStyle, o.bg, o.cmapKey, px].join('|'), hit = bgCache[key];
+  if (!hit) {
+    var keys = Object.keys(bgCache);
+    if (keys.length > 10) delete bgCache[keys[0]];
+    hit = bgCache[key] = document.createElement('canvas');
+    hit.width = hit.height = px;
+    var c2 = hit.getContext('2d');
+    c2.scale(px / size, px / size);
+    paintBg(c2, size, o.bgStyle, o.bg, o.cmap);
+  }
+  ctx.drawImage(hit, 0, 0, size, size);
+}
+
+/* ---- the moving point ---- */
+function drawTip(c, style, x, y, col, lw, u, ph, dark, card, full, ox, oy, sc) {
+  u *= 1.45;                                                   // sizes below are tuned at this scale
+  var rgb = rgbArr(col), hot = mixC(rgb, [255, 255, 255], dark ? 0.7 : 0.3), core = dark ? '#fff' : rgbS(mixC(rgb, [0, 0, 0], 0.25)), k, R;
+  function halo(rad, a) {
+    var g = c.createRadialGradient(x, y, 0, x, y, rad);
+    g.addColorStop(0, rgbaS(hot, a)); g.addColorStop(0.35, rgbaS(rgb, a * 0.55)); g.addColorStop(1, rgbaS(rgb, 0));
+    c.fillStyle = g; c.beginPath(); c.arc(x, y, rad, 0, TAU); c.fill();
+  }
+  c.save();
+  if (style === 'orb') {
+    R = 11 * u * (1 + 0.12 * Math.sin(ph * 2.2));
+    halo(R * 2.4, 0.5); halo(R, 0.95);
+    c.fillStyle = core; c.beginPath(); c.arc(x, y, Math.max(1.2, 2.2 * u), 0, TAU); c.fill();
+  } else if (style === 'comet') {
+    var pts = [], from = Math.max(0, full - 22), j;
+    for (j = from; j <= full; j++) pts.push([ox + card.xs[j] * sc, oy - card.ys[j] * sc]);
+    pts.push([x, y]);
+    c.lineCap = 'round'; c.lineJoin = 'round';
+    for (j = 0; j < pts.length - 1; j++) {
+      var t = (j + 1) / (pts.length - 1);
+      c.strokeStyle = rgbaS(mixC(rgb, [255, 255, 255], (dark ? 0.55 : 0.2) * t), (0.1 + 0.75 * t * t).toFixed(3));
+      c.lineWidth = lw * 1.2 + 5 * u * t;
+      c.beginPath(); c.moveTo(pts[j][0], pts[j][1]); c.lineTo(pts[j + 1][0], pts[j + 1][1]); c.stroke();
+    }
+    halo(24 * u, 0.5); halo(8 * u, 1);
+    c.fillStyle = core; c.beginPath(); c.arc(x, y, Math.max(1.2, 2.4 * u), 0, TAU); c.fill();
+  } else if (style === 'ring') {
+    var T = (ph * 0.55) % 1;
+    for (k = 0; k < 2; k++) {
+      var tt = (T + k * 0.5) % 1;
+      c.strokeStyle = rgbaS(hot, ((1 - tt) * 0.9).toFixed(3)); c.lineWidth = Math.max(0.8, 2.2 * u * (1 - tt) + 0.6);
+      c.beginPath(); c.arc(x, y, (3 + 17 * tt) * u, 0, TAU); c.stroke();
+    }
+    halo(9 * u, 0.9);
+    c.fillStyle = core; c.beginPath(); c.arc(x, y, Math.max(1.2, 2 * u), 0, TAU); c.fill();
+  } else {                                                      // simple dot
+    c.fillStyle = col; c.beginPath(); c.arc(x, y, lw + 1.6, 0, TAU); c.fill();
+  }
+  c.restore();
+}
+
+/* everything the painter needs to know about the current look */
+function lookOpts() {
+  var cm = walkCmap(), bg = bgInput.value;
+  return {
+    bg: bg, dark: isDarkBg(bg), bgStyle: bgStyleSel.value, cmap: cm,
+    cmapKey: cm === '~custom' ? cm + c1Input.value + c2Input.value : cm,
+    glow: parseFloat(glowRange.value) / 50, tipStyle: tipSel.value
+  };
+}
+function inkFor(dark) { return dark ? { ink: '#EAF0F5', muted: '#9FB0C0' } : { ink: '#16222E', muted: '#506070' }; }
+
+/* ================= sound (Web Audio: nothing to download) ================= */
+var Snd = (function () {
+  var ac = null, master = null, mode = 'off', vol = 0.4, next = 0;
+  var SCALE = [0, 2, 4, 7, 9];                                   // major pentatonic: any run of digits stays consonant
+  var MODES = {
+    pluck:  { dur: 0.24, over: 1.6, gain: 0.55 },
+    bell:   { dur: 0.9,  over: 3.5, gain: 0.5 },
+    synth:  { dur: 0.25, over: 1.5, gain: 0.3 },
+    arcade: { dur: 0.1,  over: 1,   gain: 0.22 }
+  };
+  var FLOW_AT = 16, FLOW_NPS = 6;                                // above 16 digits/s the sound switches to a calm mode of about 6 notes a second
+  function ensure() {
+    if (!ac) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      ac = new AC();
+      master = ac.createGain();
+      var comp = ac.createDynamicsCompressor();
+      master.connect(comp); comp.connect(ac.destination);
+    }
+    if (ac.state === 'suspended') ac.resume();
+    master.gain.value = vol * vol * 0.9;                         // squared: the slider feels even
+    return true;
+  }
+  function farthest(c) {                                         // the largest distance from the start along this walk (cached)
+    if (c.farRev !== c.rev) {
+      var r = 1e-9;
+      for (var i = 0; i < c.xs.length; i++) { var d = Math.hypot(c.xs[i], c.ys[i]); if (d > r) r = d; }
+      c.far = r; c.farRev = c.rev;
+    }
+    return c.far;
+  }
+  function midi(d, shift) { return 57 + shift + 12 * Math.floor(d / 5) + SCALE[d % 5]; }   // digits 0-9 over two octaves
+  function note(m, pan, gain, dur, when) {
+    var f = 440 * Math.pow(2, (m - 69) / 12), t = when || ac.currentTime, end = t + dur + 0.05;
+    var e = ac.createGain(), bus = ac.createGain(), o;
+    if (ac.createStereoPanner) { var sp = ac.createStereoPanner(); sp.pan.value = pan; e.connect(sp); sp.connect(master); } else e.connect(master);
+    if (mode === 'pluck' || mode === 'synth') {
+      var lp = ac.createBiquadFilter(); lp.type = 'lowpass';
+      lp.frequency.setValueAtTime(f * (mode === 'synth' ? 9 : 6), t);
+      lp.frequency.exponentialRampToValueAtTime(f * 2, t + dur);
+      bus.connect(lp); lp.connect(e);
+    } else bus.connect(e);
+    e.gain.setValueAtTime(0.0001, t);
+    e.gain.linearRampToValueAtTime(gain, t + (mode === 'synth' ? 0.012 : 0.004));
+    e.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    function osc(type, mult, level, glide) {
+      var oo = ac.createOscillator(), g = ac.createGain();
+      oo.type = type; oo.frequency.setValueAtTime(f * mult, t);
+      if (glide) oo.frequency.exponentialRampToValueAtTime(f * mult * glide, t + dur * 0.7);
+      g.gain.value = level; oo.connect(g); g.connect(bus); oo.start(t); oo.stop(end);
+      return oo;
+    }
+    if (mode === 'pluck') { osc('triangle', 1, 1); osc('sine', 2, 0.25); }
+    else if (mode === 'bell') { osc('sine', 1, 1); osc('sine', 2.76, 0.3); osc('sine', 5.4, 0.1); }
+    else if (mode === 'synth') { o = osc('sawtooth', 1, 0.5); o.detune.value = -8; o = osc('sawtooth', 1, 0.5); o.detune.value = 8; }
+    else { osc('square', 1, 0.35, 1.6); }
+  }
+  return {
+    set: function (m, v) {
+      mode = MODES[m] ? m : 'off'; vol = Math.max(0, Math.min(1, v));
+      if (mode !== 'off') ensure();
+      if (master) master.gain.value = vol * vol * 0.9;
+    },
+    reset: function () { next = 0; },
+    unlock: function () { if (mode !== 'off') ensure(); },        // browsers only allow sound after a click or tap
+    on: function () { return mode !== 'off'; },
+    preview: function () {
+      if (mode === 'off' || !ensure()) return;
+      var M = MODES[mode], t = ac.currentTime;
+      note(69, 0, M.gain, Math.min(M.dur, 0.3), t); note(76, 0, M.gain, Math.min(M.dur, 0.3), t + 0.11);
+    },
+    /* One call per animation frame. Up to 16 digits/s every digit plays and its value sets the pitch. Faster than that a note
+       per digit is just noise, so it switches to a calm mode: about 6 notes a second, longer and softer, and the pitch follows how
+       far the walker is from the start (higher = farther away), so you hear the walk wander out and come back. */
+    tick: function (p0, p1, list, rate) {
+      var to = Math.floor(p1);
+      if (mode === 'off' || !ac || ac.state !== 'running' || document.hidden) { next = Math.max(next, to); return; }
+      var flow = rate > FLOW_AT, M = MODES[mode];
+      var stride = flow ? Math.max(1, Math.round(rate / FLOW_NPS)) : 1, nps = rate / stride;
+      var dur = Math.max(0.05, Math.min(M.dur * (flow ? 1.6 : 1), M.over * (flow ? 1.4 : 1) / nps));
+      var gain = M.gain / Math.sqrt(list.length) * (flow ? 0.8 : 1);
+      var played = 0, t = ac.currentTime;
+      for (var s = next; s < to && played < 4; s++) {
+        if (s % stride) continue;
+        list.forEach(function (c, ci) {
+          if (s >= c.digits.length) return;
+          var pan = list.length > 1 ? (ci / (list.length - 1) - 0.5) * 1.4 : 0, deg;
+          if (flow) deg = Math.round(Math.min(1, Math.hypot(c.xs[s], c.ys[s]) / farthest(c)) * 9);
+          else deg = c.digits.charCodeAt(s) - 48;
+          note(midi(deg, (ci % 2) * 12), pan, gain, dur, t);
+        });
+        played++;
+      }
+      next = Math.max(next, to);
+    },
+    finale: function () {                                        // a small rising chime when the walk ends
+      if (mode === 'off' || !ac || ac.state !== 'running' || document.hidden) return;
+      var M = MODES[mode], t = ac.currentTime;
+      [69, 73, 76, 81].forEach(function (m, i) { note(m, 0, M.gain * 0.9, Math.max(0.2, M.dur * 1.6), t + i * 0.09); });
+    }
+  };
+})();
+
 /* ================= geometry & painting ================= */
 var cards = [];
 var progress = 0, lastT = 0, raf = 0, speedOverride = 0;
 
 function fmt(v) { return v < 10 ? v.toFixed(2) : v < 1000 ? v.toFixed(1) : v.toFixed(0); }
 function slug(s) { return s.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '').slice(0, 40) || 'walk'; }
+/* The turn angle is a whole number of degrees (0 to 359). */
+function turnDeg() {
+  var v = Math.round(parseFloat(turnAngle.value));
+  return isFinite(v) ? Math.max(0, Math.min(359, v)) : 90;
+}
+function setTurn(v) {
+  v = Math.max(0, Math.min(359, Math.round(v)));
+  turnAngle.value = v;
+  turnRange.value = v;
+}
+function angleLabel(a) { return Math.round(a) + '°'; }
 function currentTheta() {
-  return parseFloat(turnSel.value) * Math.PI / 180 * (dirSel.value === 'cw' ? -1 : 1);
+  return turnDeg() * Math.PI / 180 * (dirSel.value === 'cw' ? -1 : 1);
 }
 function maxDigits() { return cards.reduce(function (m, c) { return Math.max(m, c.digits.length); }, 0); }
 
@@ -872,7 +1368,7 @@ function computePath(card) {
     xs[i + 1] = x; ys[i + 1] = y; pre[i + 1] = pre[i] + len;
     h += th;
   }
-  card.xs = xs; card.ys = ys; card.pre = pre;
+  card.xs = xs; card.ys = ys; card.pre = pre; card.rev = (card.rev || 0) + 1;
   card.finalDist = Math.hypot(xs[n], ys[n]);
   card.finalPath = pre[n];
   var minX = 0, maxX = 0, minY = 0, maxY = 0;     // origin always included
@@ -884,7 +1380,7 @@ function computePath(card) {
 }
 
 function recolor(card) {
-  var n = card.digits.length, name = cmapSel.value;
+  var n = card.digits.length, name = walkCmap();
   card.colors = new Array(n);
   for (var i = 0; i < n; i++) card.colors[i] = cmapColor(name, i / n);   // same rule as the python: i / total
 }
@@ -906,14 +1402,42 @@ function layout(card) {
   card.f = fit(card, size);
 }
 
-/* draws the walk (up to fractional progress `prog`) into a size x size square at the ctx origin */
+/* with a glow, each segment gets two wide see-through strokes under a lighter core */
+function strokeLine(c, x0, y0, x1, y1, col, core, lw, glow) {
+  if (x0 === x1 && y0 === y1) return;
+  c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1);
+  if (glow > 0) {
+    c.strokeStyle = col;
+    c.globalAlpha = Math.min(0.5, 0.09 * glow); c.lineWidth = lw * 6.5; c.stroke();
+    c.globalAlpha = Math.min(0.75, 0.2 * glow); c.lineWidth = lw * 3; c.stroke();
+    c.globalAlpha = 1; c.lineWidth = lw; c.strokeStyle = core;
+  } else c.strokeStyle = col;
+  c.stroke();
+}
+function segment(c, card, cores, i, ox, oy, sc, lw, glow) {
+  var xs = card.xs, ys = card.ys;
+  strokeLine(c, ox + xs[i] * sc, oy - ys[i] * sc, ox + xs[i + 1] * sc, oy - ys[i + 1] * sc, card.colors[i], cores[i], lw, glow);
+}
+function coreColors(card, glow) {                                // brighter centre line for the glow
+  if (card.coreFor === card.colors && card.coreGlow === glow) return card.cores;
+  var amt = Math.min(0.75, 0.25 + 0.2 * glow), out = new Array(card.colors.length);
+  for (var i = 0; i < out.length; i++) out[i] = rgbS(mixC(rgbArr(card.colors[i]), [255, 255, 255], amt));
+  card.cores = out; card.coreFor = card.colors; card.coreGlow = glow;
+  return out;
+}
+function tipScale(size, ls) { return Math.max(0.6, Math.min(1.25, (size / ls) / 400)); }
+
+/* draws the walk (up to fractional progress `prog`) into a size x size square at the ctx origin.
+   o = look (lookOpts) + { lwScale, tip, axes, phase, live }. In the live view (o.live) finished segments are kept in an
+   offscreen layer, so each frame only draws the new ones even with a glow. */
 function paint(ctx, size, card, f, prog, o) {
   var n = card.digits.length, xs = card.xs, ys = card.ys, sc = f.sc, ox = f.ox, oy = f.oy, ls = o.lwScale;
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(0, 0, size, size);
+  var dark = !!o.dark, glow = o.glow || 0;
+  if (!(prog > 0)) prog = 0;                                     // the first frame can arrive a hair before the start time
+  drawBackground(ctx, size, o);
 
   if (o.axes) {
-    ctx.strokeStyle = '#B4BCC3'; ctx.lineWidth = 0.75 * ls;
+    ctx.strokeStyle = dark ? 'rgba(255,255,255,0.22)' : '#B4BCC3'; ctx.lineWidth = 0.75 * ls;
     var m = size * 0.03;
     ctx.beginPath();
     ctx.moveTo(m, oy); ctx.lineTo(size - m, oy);
@@ -924,32 +1448,39 @@ function paint(ctx, size, card, f, prog, o) {
   var lw = (n <= 50 ? 2 : n <= 150 ? 1.6 : n <= 500 ? 1.1 : 0.8) * ls;
   ctx.lineWidth = lw; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   var full = Math.min(Math.floor(prog), n), frac = Math.min(prog, n) - full, i;
+  var cores = (glow > 0 && dark) ? coreColors(card, glow) : card.colors;
 
-  for (i = 0; i < full; i++) {
-    if (xs[i] === xs[i + 1] && ys[i] === ys[i + 1]) continue;
-    ctx.strokeStyle = card.colors[i];
-    ctx.beginPath();
-    ctx.moveTo(ox + xs[i] * sc, oy - ys[i] * sc);
-    ctx.lineTo(ox + xs[i + 1] * sc, oy - ys[i + 1] * sc);
-    ctx.stroke();
+  if (o.live) {
+    var px = ctx.canvas.width, L = card.layer;
+    var key = [px, sc, ox, oy, glow, ls, dark ? 1 : 0, card.rev].join('|');
+    if (!L || L.key !== key || L.colors !== card.colors || L.n > full) {
+      if (!L) { L = card.layer = { cv: document.createElement('canvas'), n: 0 }; L.cx = L.cv.getContext('2d'); }
+      L.cv.width = px; L.cv.height = px;
+      L.cx.setTransform(px / size, 0, 0, px / size, 0, 0);
+      L.cx.lineCap = 'round'; L.cx.lineJoin = 'round'; L.cx.lineWidth = lw;
+      L.key = key; L.colors = card.colors; L.n = 0;
+    }
+    for (i = L.n; i < full; i++) segment(L.cx, card, cores, i, ox, oy, sc, lw, glow);
+    L.n = full;
+    ctx.drawImage(L.cv, 0, 0, size, size);
+  } else {
+    for (i = 0; i < full; i++) segment(ctx, card, cores, i, ox, oy, sc, lw, glow);
   }
+
   var wx = xs[full], wy = ys[full];
   if (full < n && frac > 0) {
     wx = xs[full] + (xs[full + 1] - xs[full]) * frac;
     wy = ys[full] + (ys[full + 1] - ys[full]) * frac;
-    ctx.strokeStyle = card.colors[full];
-    ctx.beginPath();
-    ctx.moveTo(ox + xs[full] * sc, oy - ys[full] * sc);
-    ctx.lineTo(ox + wx * sc, oy - wy * sc);
-    ctx.stroke();
+    strokeLine(ctx, ox + xs[full] * sc, oy - ys[full] * sc, ox + wx * sc, oy - wy * sc, card.colors[full], cores[full], lw, glow);
   }
 
-  ctx.fillStyle = '#0a7d0a';                                   // start point
+  ctx.fillStyle = dark ? 'rgba(255,255,255,0.9)' : '#0a7d0a';   // start point
   ctx.beginPath(); ctx.arc(ox, oy, 3.2 * ls, 0, Math.PI * 2); ctx.fill();
 
-  if (o.tip && prog < n) {                                     // moving tip while animating
-    ctx.fillStyle = card.colors[Math.min(full, n - 1)];
-    ctx.beginPath(); ctx.arc(ox + wx * sc, oy - wy * sc, lw + 1.6, 0, Math.PI * 2); ctx.fill();
+  var style = o.tipStyle || 'dot';
+  if (o.tip && (prog < n || style !== 'dot')) {                  // moving tip while animating (stars and friends stay at the end)
+    drawTip(ctx, style, ox + wx * sc, oy - wy * sc, card.colors[Math.min(full, n - 1)], lw, ls * tipScale(size, ls), o.phase || 0,
+            dark, card, full, ox, oy, sc);
   }
   return { wx: wx, wy: wy };
 }
@@ -958,7 +1489,7 @@ function setText(el, s) { if (el.textContent !== s) el.textContent = s; }
 
 function render(card, prog) {
   var n = card.digits.length;
-  var res = paint(card.ctx, card.size, card, card.f, prog, { lwScale: 1, tip: true, axes: axesToggle.checked });
+  var res = paint(card.ctx, card.size, card, card.f, prog, Object.assign(lookOpts(), { lwScale: 1, tip: true, axes: axesToggle.checked, live: true, phase: performance.now() / 1000 * 2.4 }));
   var full = Math.min(Math.floor(prog), n), frac = Math.min(prog, n) - full;
   card.tipDist = Math.hypot(res.wx, res.wy);
   card.tipPath = card.pre[full] + (full < n ? frac * (card.digits.charCodeAt(full) - 48) : 0);
@@ -1056,20 +1587,27 @@ function stopLoop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
 
 function frame(now) {
   var dt = Math.min(100, now - lastT); lastT = now;
-  progress += (speedOverride || parseFloat(speedRange.value)) * dt / 1000;
+  var rate = speedOverride || parseFloat(speedRange.value), before = progress;
+  progress += rate * dt / 1000;
   var running = false;
   cards.forEach(function (c) {
     render(c, progress);
     if (progress < c.digits.length) running = true;
   });
   updateRace(!running);
+  if (!exp) {                                          // no sound while a GIF or video is being made
+    Snd.tick(before, Math.min(progress, maxDigits()), cards, rate);
+    if (!running) Snd.finale();
+  }
   raf = running ? requestAnimationFrame(frame) : 0;   // done -> freeze, loop stops
 }
 
 function startAnimation(force) {
+  stopSweep();
   stopLoop();
   if (reduceMotion && !force) { finish(); return; }
   progress = 0;
+  Snd.reset();
   cards.forEach(function (c) { c.shown = -1; });
   renderAll();
   lastT = performance.now();
@@ -1077,6 +1615,7 @@ function startAnimation(force) {
 }
 
 function finish() {
+  stopSweep();
   stopLoop();
   progress = 1e9;
   cards.forEach(function (c) { c.shown = -1; });
@@ -1132,6 +1671,7 @@ function setStatus(msg, ms) {
 }
 
 function draw() {
+  stopSweep();
   abortExport();
   stopLoop();
   var N = parseInt(digitsSel.value, 10);
@@ -1194,41 +1734,42 @@ function ellipsize(ctx, text, maxW) {
 
 function savePoster(card) {
   var W = 3000, H = 3700, m = 150, S = W - 2 * m;
+  var look = lookOpts(), P = inkFor(look.dark);
   var cv = document.createElement('canvas');
   cv.width = W; cv.height = H;
   var c = cv.getContext('2d');
-  c.fillStyle = '#fff'; c.fillRect(0, 0, W, H);
+  c.fillStyle = look.bg; c.fillRect(0, 0, W, H);
 
   c.save(); c.translate(m, m);
-  paint(c, S, card, fit(card, S), 1e9, { lwScale: S / 460, tip: false, axes: false });
+  paint(c, S, card, fit(card, S), 1e9, Object.assign({}, look, { lwScale: S / 460, tip: false, axes: false }));
   c.restore();
 
   c.textBaseline = 'alphabetic';
-  c.fillStyle = '#16222E';
+  c.fillStyle = P.ink;
   c.font = '800 128px ' + FONT;
   c.fillText(ellipsize(c, card.label, S), m, 3080);
 
-  c.fillStyle = '#506070';
+  c.fillStyle = P.muted;
   c.font = '500 62px ' + FONT;
-  var turn = turnSel.options[turnSel.selectedIndex].text;
+  var turn = angleLabel(turnDeg());
   var dir = dirSel.value === 'cw' ? 'clockwise' : 'anticlockwise';
   c.fillText(card.digits.length + ' digits · turn ' + turn + ' ' + dir, m, 3180);
   c.fillText('Distance from start ' + fmt(card.finalDist) + ' u · path length ' + fmt(card.finalPath) + ' u', m, 3270);
 
   // colour bar: first digit -> last digit
   var g = c.createLinearGradient(m, 0, m + S, 0);
-  for (var k = 0; k <= 10; k++) g.addColorStop(k / 10, cmapColor(cmapSel.value, k / 10));
+  for (var k = 0; k <= 10; k++) g.addColorStop(k / 10, cmapColor(walkCmap(), k / 10));
   c.fillStyle = g; rr(c, m, 3350, S, 30, 15); c.fill();
-  c.fillStyle = '#506070'; c.font = '500 44px ' + FONT;
+  c.fillStyle = P.muted; c.font = '500 44px ' + FONT;
   c.textAlign = 'left';  c.fillText('first digit', m, 3450);
   c.textAlign = 'right'; c.fillText('last digit', m + S, 3450);
 
-  c.textAlign = 'left'; c.fillStyle = '#16222E'; c.font = '800 54px ' + FONT;
+  c.textAlign = 'left'; c.fillStyle = P.ink; c.font = '800 54px ' + FONT;
   c.fillText('Digitwalker', m, 3600);
   var pw = c.measureText('Digitwalker').width;
-  c.fillStyle = '#506070'; c.font = '400 46px ' + FONT;
+  c.fillStyle = P.muted; c.font = '400 46px ' + FONT;
   c.fillText('by Himanshu Sharma', m + pw + 30, 3600);
-  c.textAlign = 'right'; c.fillStyle = '#506070'; c.font = '500 48px ' + FONT;
+  c.textAlign = 'right'; c.fillStyle = P.muted; c.font = '500 48px ' + FONT;
   c.fillText('phymanshu.github.io', m + S, 3600);
 
   cv.toBlob(function (blob) {
@@ -1269,6 +1810,7 @@ function makeComposer(list, cell, direct, axes) {
 
   function composite(p) {
     var prog = p == null ? progress : p;
+    var look = lookOpts(), P = inkFor(look.dark);
     cx.fillStyle = '#ECEFF1'; cx.fillRect(0, 0, W, H);
     cx.textBaseline = 'middle';
     cx.textAlign = 'left'; cx.fillStyle = '#16222E'; cx.font = '800 28px ' + FONT;
@@ -1281,15 +1823,15 @@ function makeComposer(list, cell, direct, axes) {
     var dist = [], plen = [];
     list.forEach(function (c, i) {
       var x = gap + (i % cols) * (cell + gap), y = top + Math.floor(i / cols) * (cellH + gap);
-      cx.fillStyle = '#fff'; rr(cx, x, y, cell, cellH, 22); cx.fill();
-      cx.textAlign = 'left'; cx.fillStyle = '#16222E'; cx.font = '700 20px ' + FONT;
+      cx.fillStyle = look.bg; rr(cx, x, y, cell, cellH, 22); cx.fill();
+      cx.textAlign = 'left'; cx.fillStyle = P.ink; cx.font = '700 20px ' + FONT;
       cx.textBaseline = 'middle';
       cx.fillText(ellipsize(cx, c.label, cell - 28), x + 14, y + head / 2 + 2);
       if (direct) {
         var N = c.digits.length;
         cx.save();
         cx.translate(x, y + head);
-        var res = paint(cx, cell, c, fits[i], prog, { lwScale: cell / (c.size || 300), tip: true, axes: axes });
+        var res = paint(cx, cell, c, fits[i], prog, Object.assign({}, look, { lwScale: cell / (c.size || 300), tip: true, axes: axes, phase: prog * 0.35 }));
         cx.restore();
         var full = Math.min(Math.floor(prog), N), frac = Math.min(prog, N) - full;
         dist[i] = Math.hypot(res.wx, res.wy);
@@ -1299,7 +1841,7 @@ function makeComposer(list, cell, direct, axes) {
         dist[i] = c.tipDist; plen[i] = c.tipPath;
       }
       cx.textAlign = 'left'; cx.textBaseline = 'middle';
-      cx.fillStyle = '#506070'; cx.font = '500 17px ' + FONT;
+      cx.fillStyle = P.muted; cx.font = '500 17px ' + FONT;
       cx.fillText('distance ' + fmt(dist[i]) + ' u   ·   path ' + fmt(plen[i]) + ' u', x + 14, y + head + cell + foot / 2);
     });
     var msg = '1 u = the step for digit 1';
@@ -1621,10 +2163,13 @@ function stateParams() {
     if (v) q.append('e', v);
   });
   q.set('n', digitsSel.value);
-  q.set('t', turnSel.value);
+  q.set('t', String(turnDeg()));
   q.set('d', dirSel.value);
-  q.set('c', cmapSel.value);
-  q.set('s', skipInt.checked ? '1' : '0');
+  q.set('c', cmapSel.value === 'custom' ? 'c:' + c1Input.value.slice(1) + '-' + c2Input.value.slice(1) : cmapSel.value);
+  q.set('bg', bgInput.value.slice(1));
+  q.set('bs', bgStyleSel.value);
+  q.set('g', glowRange.value);
+  q.set('tp', tipSel.value);
   q.set('a', axesToggle.checked ? '1' : '0');
   q.set('v', speedRange.value);
   if (numarathon) q.set('r', '1');
@@ -1642,8 +2187,14 @@ function setSel(sel, val) {
 function loadFromUrl() {
   var q;
   try { q = new URLSearchParams(location.search); } catch (e) { return []; }
-  setSel(digitsSel, q.get('n')); setSel(turnSel, q.get('t')); setSel(dirSel, q.get('d')); setSel(cmapSel, q.get('c'));
-  if (q.get('s') !== null) skipInt.checked = q.get('s') === '1';
+  setSel(digitsSel, q.get('n')); setSel(dirSel, q.get('d'));
+  var tt = parseFloat(q.get('t')); if (isFinite(tt) && tt >= 0 && tt <= 359.99) setTurn(tt);
+  var cc = q.get('c') || '', cm = /^c:([0-9a-f]{6})-([0-9a-f]{6})$/i.exec(cc);
+  if (cm) { setSel(cmapSel, 'custom'); c1Input.value = '#' + cm[1].toLowerCase(); c2Input.value = '#' + cm[2].toLowerCase(); } else setSel(cmapSel, cc);
+  var bgq = q.get('bg'); if (bgq && /^[0-9a-f]{6}$/i.test(bgq)) bgInput.value = '#' + bgq.toLowerCase();
+  setSel(bgStyleSel, q.get('bs')); setSel(tipSel, q.get('tp'));
+  var gq = parseInt(q.get('g'), 10); if (gq >= 0 && gq <= 100) glowRange.value = gq;
+  syncLookUi();
   if (q.get('a') !== null) axesToggle.checked = q.get('a') === '1';
   if (q.get('r') === '1') numarathon = true;
   var v = parseInt(q.get('v'), 10);
@@ -1980,7 +2531,7 @@ function hofPrefill(label) {
 /* show a board entry in the main plot, under the race rules */
 function replayRanked(expr) {
   abortExport();
-  setSel(digitsSel, String(RANK_N)); setSel(turnSel, '90'); setSel(dirSel, 'ccw');
+  setSel(digitsSel, String(RANK_N)); setTurn(90); setSel(dirSel, 'ccw');
   skipInt.checked = false;
   speedRange.value = 80; speedVal.textContent = '80/s';
   loadPreset([expr]);
@@ -2141,8 +2692,10 @@ function ctaGo() {
   if (!t) return;
   var n = parseInt(digitsSel.value, 10) || 250;
   n = GAL_NS.reduce(function (best, x) { return Math.abs(x - n) < Math.abs(best - n) ? x : best; }, GAL_NS[0]);
-  galWrite({ p: t.p, q: t.q, n: n, angle: Math.round(clampNum(turnSel.value, 0.01, 359.99, 72) * 100) / 100, dir: dirSel.value === 'cw' ? 'cw' : 'ccw',
-             cmap: cmapSel.value, bg: '#ffffff', lw: 1, sym: 1, skip: skipInt.checked ? 1 : 0 });
+  var gCmap = cmapSel.value === 'custom' ? 'c:' + c1Input.value.slice(1).toLowerCase() + '-' + c2Input.value.slice(1).toLowerCase()
+    : (GAL_PAL.some(function (x) { return x[0] === cmapSel.value; }) ? cmapSel.value : 'plasma');   // the gallery has its own palette list
+  galWrite({ p: t.p, q: t.q, n: n, angle: Math.round(turnDeg() * 100) / 100, dir: dirSel.value === 'cw' ? 'cw' : 'ccw',
+             cmap: gCmap, bg: bgInput.value.toLowerCase(), lw: 1, sym: 1, skip: skipInt.checked ? 1 : 0 });
   galRenderStudio(); atlasRender();
   galSay('Loaded ' + t.p + '/' + t.q + ' from the Walker with your angle and colours. Make it yours, then pin your best work.');
 }
@@ -2557,7 +3110,7 @@ function galInit() {
 drawBtn.addEventListener('click', draw);
 addBtn.addEventListener('click', function () { var i = addRow(''); if (i) i.focus(); });
 replayBtn.addEventListener('click', function () { if (cards.length) { abortExport(); startAnimation(); } });
-finishBtn.addEventListener('click', function () { if (cards.length) { abortExport(); finish(); } });
+finishBtn.addEventListener('click', function () { if (cards.length) { abortExport(); finish(); Snd.finale(); } });
 linkBtn.addEventListener('click', copyLink);
 marathonBtn.addEventListener('click', function () {
   numarathon = !numarathon;
@@ -2567,6 +3120,7 @@ marathonBtn.addEventListener('click', function () {
   if (numarathon && cards.length >= 2) { abortExport(); startAnimation(); }
 });
 videoBtn.addEventListener('click', function () {
+  stopSweep();
   track('export-' + fmtSel.value);
   if (fmtSel.value === 'gif') exportGif(); else if (fmtSel.value === 'png') exportPng(); else exportVideo();
 });
@@ -2592,10 +3146,148 @@ function reshape() {
   cards.forEach(function (c) { computePath(c); layout(c); });
   startAnimation();
 }
-turnSel.addEventListener('change', reshape);
 dirSel.addEventListener('change', reshape);
+
+/* turn angle: dragging or typing reshapes the walk live (the animation keeps running); a preset chip redraws it from the start */
+function turnLive() {
+  syncUrl();
+  if (!cards.length) return;
+  abortExport();
+  cards.forEach(function (c) { computePath(c); layout(c); });
+  if (!raf) renderAll();
+}
+turnRange.addEventListener('input', function () { stopSweep(); turnAngle.value = turnRange.value; turnLive(); });
+turnAngle.addEventListener('input', function () {
+  stopSweep();
+  var v = parseFloat(turnAngle.value);
+  if (isFinite(v) && v >= 0) { turnRange.value = Math.min(359, Math.round(v)); turnLive(); }
+});
+turnAngle.addEventListener('change', function () { setTurn(turnDeg()); turnLive(); });
+[['30°', 30], ['45°', 45], ['60°', 60], ['72°', 72], ['90°', 90], ['120°', 120], ['144°', 144]].forEach(function (a) {
+  var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = a[0];
+  b.addEventListener('click', function () { stopSweep(); setTurn(a[1]); reshape(); });
+  $('turnChips').appendChild(b);
+});
+
+/* sweep: redraws the finished number at every whole angle from 0 up to the chosen maximum (30 degrees a second) */
+var SWEEP_RATE = 30, sweep = null, sweepBtn = $('sweepBtn'), sweepMax = $('sweepMax');
+function stopSweep() {
+  if (!sweep) return;
+  cancelAnimationFrame(sweep.raf); sweep = null;
+  sweepBtn.textContent = '▶ Sweep angle'; sweepBtn.setAttribute('aria-pressed', 'false');
+  syncUrl();
+}
+function startSweep() {
+  if (!cards.length) return;
+  var max = Math.max(1, Math.min(359, Math.round(parseFloat(sweepMax.value) || 359)));
+  sweepMax.value = max;
+  abortExport(); stopLoop(); progress = 1e9;                     // show the whole number at every angle
+  sweep = { a: 0, max: max, last: performance.now(), shown: -1, raf: 0 };
+  sweepBtn.textContent = '■ Stop'; sweepBtn.setAttribute('aria-pressed', 'true');
+  (function step(now) {
+    if (!sweep) return;
+    var sw = sweep;
+    sw.a = Math.min(sw.max, sw.a + SWEEP_RATE * Math.max(0, Math.min(100, now - sw.last)) / 1000); sw.last = now;
+    var deg = Math.floor(sw.a + 1e-9);
+    if (deg !== sw.shown) {
+      sw.shown = deg; setTurn(deg);
+      cards.forEach(function (c) { c.shown = -1; computePath(c); layout(c); });
+      renderAll();
+    }
+    if (sw.a >= sw.max) { stopSweep(); return; }
+    sw.raf = requestAnimationFrame(step);
+  })(performance.now());
+}
+sweepBtn.addEventListener('click', function () { if (sweep) stopSweep(); else startSweep(); });
+
+/* look: themes, colours, backdrop, glow, moving point */
+function syncLookUi() {
+  customRow.hidden = cmapSel.value !== 'custom';
+  syncCustom();
+  glowVal.textContent = glowRange.value === '0' ? 'off' : glowRange.value + '%';
+}
+function markThemes() {
+  var cur = lookOpts();
+  Array.prototype.forEach.call($('themes').children, function (b, i) {
+    var t = THEMES[i];
+    b.setAttribute('aria-pressed', (t.bg === cur.bg.toLowerCase() && t.style === cur.bgStyle && t.cmap === cmapSel.value &&
+      t.glow === parseFloat(glowRange.value) && t.tip === cur.tipStyle) ? 'true' : 'false');
+  });
+  Array.prototype.forEach.call($('bgChips').children, function (b, i) {
+    b.setAttribute('aria-pressed', WALK_BGS[i][1] === cur.bg.toLowerCase() ? 'true' : 'false');
+  });
+}
+function looksChanged() {
+  abortExport(); syncLookUi(); syncUrl(); markThemes();
+  cards.forEach(recolor);
+  renderAll();
+}
+function applyTheme(t) {
+  bgInput.value = t.bg; bgStyleSel.value = t.style; setSel(cmapSel, t.cmap); glowRange.value = t.glow; tipSel.value = t.tip;
+  looksChanged();
+}
+THEMES.forEach(function (t) {
+  var b = document.createElement('button'); b.type = 'button'; b.className = 'theme';
+  var dark = isDarkBg(t.bg), stops = [];
+  for (var k = 0; k <= 5; k++) stops.push(cmapColor(t.cmap, k / 5));
+  b.style.background = t.bg; b.style.color = dark ? '#EAF0F5' : '#16222E';
+  var nm = document.createElement('span'); nm.textContent = t.name;
+  var bar = document.createElement('i'); bar.style.background = 'linear-gradient(90deg,' + stops.join(',') + ')';
+  if (t.glow > 0 && dark) bar.style.boxShadow = '0 0 9px ' + cmapColor(t.cmap, 0.5);
+  b.appendChild(nm); b.appendChild(bar);
+  b.setAttribute('aria-pressed', 'false'); b.setAttribute('aria-label', 'Theme ' + t.name);
+  b.addEventListener('click', function () { applyTheme(t); });
+  $('themes').appendChild(b);
+});
+$('randLook').addEventListener('click', function () {
+  var cur = lookOpts(), pool = THEMES.filter(function (t) { return !(t.bg === cur.bg.toLowerCase() && t.cmap === cmapSel.value); });
+  applyTheme(pool[Math.floor(Math.random() * pool.length)]);
+});
+WALK_BGS.forEach(function (x) {
+  var b = document.createElement('button'); b.type = 'button'; b.className = 'swatch'; b.style.background = x[1];
+  b.title = x[0]; b.setAttribute('aria-label', 'Background ' + x[0]);
+  b.addEventListener('click', function () { bgInput.value = x[1]; looksChanged(); });
+  $('bgChips').appendChild(b);
+});
+[bgInput, c1Input, c2Input].forEach(function (el) { el.addEventListener('input', looksChanged); });
+[bgStyleSel, tipSel].forEach(function (el) { el.addEventListener('change', looksChanged); });
+glowRange.addEventListener('input', looksChanged);
+
+/* settings tabs: Walk, Look, Sound, Share */
+(function () {
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.subtabs button'));
+  function show(name) {
+    tabs.forEach(function (b) {
+      var on = b.dataset.pane === name;
+      b.setAttribute('aria-selected', on ? 'true' : 'false'); b.tabIndex = on ? 0 : -1;
+      $('pane-' + b.dataset.pane).hidden = !on;
+    });
+  }
+  tabs.forEach(function (b, i) {
+    b.addEventListener('click', function () { show(b.dataset.pane); });
+    b.addEventListener('keydown', function (ev) {
+      var d = ev.key === 'ArrowRight' ? 1 : ev.key === 'ArrowLeft' ? -1 : 0;
+      if (!d) return;
+      ev.preventDefault();
+      var t = tabs[(i + d + tabs.length) % tabs.length]; t.focus(); show(t.dataset.pane);
+    });
+  });
+  show('walk');
+})();
+
+/* sound */
+function volChanged() { volVal.textContent = volRange.value + '%'; Snd.set(sndSel.value, parseFloat(volRange.value) / 100); }
+sndSel.addEventListener('change', function () { volChanged(); Snd.preview(); });
+volRange.addEventListener('input', volChanged);
+volRange.addEventListener('change', function () { Snd.preview(); });
+volChanged();                                                    // Bell is on by default
+(function () {                                                   // the first click or key press lets the browser start the audio
+  var evs = ['pointerdown', 'keydown', 'touchstart'];
+  function unlock() { evs.forEach(function (e) { document.removeEventListener(e, unlock, true); }); Snd.unlock(); }
+  evs.forEach(function (e) { document.addEventListener(e, unlock, true); });
+})();
 // pure re-paint
-cmapSel.addEventListener('change', function () { abortExport(); syncUrl(); cards.forEach(recolor); renderAll(); });
+cmapSel.addEventListener('change', looksChanged);
 axesToggle.addEventListener('change', function () { abortExport(); syncUrl(); renderAll(); });
 
 var resizeTimer = 0;
@@ -2611,6 +3303,7 @@ window.addEventListener('resize', function () {
 // start from the shared link if there is one, otherwise with pi so the page is never empty
 var fromUrl = loadFromUrl();
 setMarathonUI();
+syncLookUi(); markThemes();
 if (fromUrl.length) fromUrl.forEach(addRow); else addRow('pi');
 draw();
 hofInit();
