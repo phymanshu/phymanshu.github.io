@@ -71,10 +71,10 @@ main{
 }
 .card-head{display:flex;align-items:baseline;justify-content:space-between;gap:.75rem}
 .card-title{
-  font:700 .9rem var(--sans);color:var(--ink);
+  font:800 1.7rem/1.1 var(--sans);color:var(--ink);letter-spacing:-.01em;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;
 }
-.card-count{font:600 .75rem var(--mono);color:var(--muted);flex-shrink:0}
+.card-count{font:600 .85rem var(--mono);color:var(--muted);flex-shrink:0}
 canvas{display:block;width:100%;aspect-ratio:1;border-radius:.8rem;background:#fff}
 .stats{display:flex;justify-content:space-between;gap:.5rem;flex-wrap:wrap;font:500 .75rem var(--mono);color:var(--muted)}
 .stats b{color:var(--ink);font-weight:700}
@@ -613,7 +613,8 @@ button[aria-pressed="true"]#sweepBtn{background:var(--signal-bright);color:var(-
                 <option value="ember">Ember</option>
                 <option value="matrix">Matrix</option>
                 <option value="cyber">Cyberpunk</option>
-                <option value="electric">Electric</option>
+                <option value="spectrum">Spectrum</option>
+              <option value="electric">Electric</option>
                 <option value="gold">Gold</option>
                 <option value="rainbow">Rainbow neon</option>
               </optgroup>
@@ -649,6 +650,7 @@ button[aria-pressed="true"]#sweepBtn{background:var(--signal-bright);color:var(-
                 <option value="grid">Neon grid</option>
                 <option value="dots">Dot matrix</option>
                 <option value="rays">Sunburst</option>
+                <option value="digits">Digit wall</option>
               </select>
             </label>
             <label class="stack">Moving point
@@ -683,7 +685,7 @@ button[aria-pressed="true"]#sweepBtn{background:var(--signal-bright);color:var(-
             <input type="range" id="volRange" min="0" max="100" step="5" value="40">
             <span class="speed-val" id="volVal">40%</span>
           </div>
-          <p class="hint">Each digit sets the pitch. Above 16 digits/s it switches to a calm mode of about 6 notes a second, pitched by how far the walker is from the start. Sound starts after your first click or tap (browsers require that). Saved GIFs and videos are silent.</p>
+          <p class="hint">Each digit sets the pitch. Above 16 digits/s it switches to a calm mode of about 6 notes a second, pitched by how far the walker is from the start. Sound starts after your first click or tap (browsers require that). Saved videos include the sound; GIFs can't carry sound.</p>
         </div>
 
         <div class="pane" id="pane-share" role="tabpanel" aria-labelledby="tab-btn-share" hidden>
@@ -877,7 +879,8 @@ var CMAPS = {
   matrix:    ['#008a3a','#00b34a','#00ff6a','#7dffa5','#d6ffe3'],
   cyber:     ['#fcee0a','#ff9e00','#ff2a6d','#d100d1','#6c2bff','#05d9e8'],
   electric:  ['#00ffd5','#00ff6a','#c6ff00','#ffe600','#ff8a00','#ff2e63'],
-  gold:      ['#a86b00','#d99a00','#f2b705','#ffd95a','#fff1b0','#ffffff']
+  gold:      ['#a86b00','#d99a00','#f2b705','#ffd95a','#fff1b0','#ffffff'],
+  spectrum:  ['#4aa8ff','#2de2c8','#7dff6b','#d4f542','#ffb02e','#ff6a2e','#ff2e2e']
 };
 (function () {                                   // rainbow neon: a full hue sweep at full saturation
   function hsl(h) {
@@ -1015,13 +1018,20 @@ function evaluate(src, D) {
   return result;
 }
 
+var lastIntLen = 0;                              // how many digits sit before the decimal point (read by makeCard)
 function extractDigits(value, N, skipInteger) {
   var s = value.abs().toFixed();                 // plain notation, trailing zeros trimmed
   var parts = s.split('.'), ip = parts[0], fp = parts[1] || '';
+  lastIntLen = skipInteger || ip === '0' ? 0 : ip.length;
   var d = skipInteger ? fp : (ip === '0' ? '' : ip) + fp;
   d = d.slice(0, N);
   if (!d) throw new Error('no digits to draw (result is zero or a whole number with "skip integer part" on)');
   return d;
+}
+
+function digitWall(d, intLen) {                                  // "3.14159..." (with the decimal point) for the digit-wall backdrop
+  if (d.length <= intLen) return d;
+  return (intLen > 0 ? d.slice(0, intLen) : '0') + '.' + d.slice(intLen);
 }
 
 /* ================= look: backgrounds, glow and moving-point styles ================= */
@@ -1031,6 +1041,7 @@ var WALK_BGS = [['white', '#ffffff'], ['cream', '#f6f0e4'], ['blush', '#fff1f6']
 /* a theme sets background colour, backdrop, line colours, glow and moving point in one click */
 var THEMES = [
   { id: 'classic',   name: 'Classic',   bg: '#ffffff', style: 'solid',  cmap: 'viridis',   glow: 0,  tip: 'dot' },
+  { id: 'digits',    name: 'Digits',    bg: '#070b1a', style: 'digits', cmap: 'spectrum',  glow: 60, tip: 'orb' },
   { id: 'neon',      name: 'Neon',      bg: '#070b1a', style: 'grid',   cmap: 'neon',      glow: 70, tip: 'comet' },
   { id: 'synth',     name: 'Synthwave', bg: '#14062b', style: 'rays',   cmap: 'synthwave', glow: 65, tip: 'orb' },
   { id: 'aurora',    name: 'Aurora',    bg: '#04121f', style: 'aurora', cmap: 'aurora',    glow: 55, tip: 'orb' },
@@ -1065,7 +1076,7 @@ function mulberry(seed) {                                        // tiny seeded 
 }
 
 /* ---- backdrops (static, so GIF and video frames stay small) ---- */
-function paintBg(c, S, style, bgHex, cmap) {
+function paintBg(c, S, style, bgHex, cmap, text) {
   var bg = hexToRgb(bgHex), dark = lum(bg) < 0.45, rnd = mulberry(20260607), k = S / 460, i, j, x, y, r;
   var acc = [0.12, 0.5, 0.88].map(function (t) { return rgbArr(cmapColor(cmap, t)); });
   var ink = [22, 34, 46], black = [0, 0, 0];
@@ -1148,6 +1159,18 @@ function paintBg(c, S, style, bgHex, cmap) {
     c.fillStyle = rgbaS(dark ? acc[1] : ink, dark ? 0.26 : 0.14);
     for (y = gap / 2; y < S; y += gap) for (x = gap / 2; x < S; x += gap) { c.beginPath(); c.arc(x, y, Math.max(0.6, 0.9 * k), 0, TAU); c.fill(); }
     if (dark) vignette(0.5);
+  } else if (style === 'digits') {                               // the number's own digits as a faint wall of text
+    var lg = c.createLinearGradient(0, 0, 0, S);
+    lg.addColorStop(0, rgbS(bg)); lg.addColorStop(1, rgbS(dark ? mixC(bg, [34, 44, 120], 0.38) : mixC(bg, ink, 0.07)));
+    c.fillStyle = lg; c.fillRect(0, 0, S, S);
+    var fs = S / 17, mono = 'ui-monospace, SFMono-Regular, Menlo, Consolas, "DejaVu Sans Mono", monospace';
+    c.font = fs + 'px ' + mono; c.textBaseline = 'alphabetic'; c.textAlign = 'left';
+    var cw = c.measureText('0').width || fs * 0.6, per = Math.ceil(S / cw) + 1, nrows = Math.ceil(S / (fs * 1.12)) + 1;
+    var wall = text || '0123456789', plain = wall.replace('.', '');
+    while (wall.length < per * nrows) wall += plain;
+    c.fillStyle = dark ? 'rgba(150,170,255,0.15)' : rgbaS(ink, 0.08);
+    for (j = 0; j < nrows; j++) c.fillText(wall.substr(j * per, per), S * 0.004, (j + 1) * fs * 1.12 - fs * 0.12);
+    if (dark) vignette(0.35);
   } else if (style === 'rays') {
     var wedges = 28;
     for (i = 0; i < wedges; i += 2) {
@@ -1165,8 +1188,8 @@ function drawBackground(ctx, size, o) {
   var sc = 1;
   try { sc = Math.abs(ctx.getTransform().a) || 1; } catch (e) { /* very old browsers */ }
   var px = Math.round(size * sc);
-  if (o.bgStyle === 'solid' || px > 1400) { paintBg(ctx, size, o.bgStyle, o.bg, o.cmap); return; }
-  var key = [o.bgStyle, o.bg, o.cmapKey, px].join('|'), hit = bgCache[key];
+  if (o.bgStyle === 'solid' || px > 1400) { paintBg(ctx, size, o.bgStyle, o.bg, o.cmap, o.text); return; }
+  var key = [o.bgStyle, o.bg, o.cmapKey, px, o.bgStyle === 'digits' ? (o.text || '').length + (o.text || '').slice(0, 60) : ''].join('|'), hit = bgCache[key];
   if (!hit) {
     var keys = Object.keys(bgCache);
     if (keys.length > 10) delete bgCache[keys[0]];
@@ -1174,7 +1197,7 @@ function drawBackground(ctx, size, o) {
     hit.width = hit.height = px;
     var c2 = hit.getContext('2d');
     c2.scale(px / size, px / size);
-    paintBg(c2, size, o.bgStyle, o.bg, o.cmap);
+    paintBg(c2, size, o.bgStyle, o.bg, o.cmap, o.text);
   }
   ctx.drawImage(hit, 0, 0, size, size);
 }
@@ -1234,7 +1257,7 @@ function inkFor(dark) { return dark ? { ink: '#EAF0F5', muted: '#9FB0C0' } : { i
 
 /* ================= sound (Web Audio: nothing to download) ================= */
 var Snd = (function () {
-  var ac = null, master = null, mode = 'off', vol = 0.4, next = 0;
+  var ac = null, master = null, comp = null, recDest = null, recGain = null, mode = 'off', vol = 0.4, next = 0;
   var SCALE = [0, 2, 4, 7, 9];                                   // major pentatonic: any run of digits stays consonant
   var MODES = {
     pluck:  { dur: 0.24, over: 1.6, gain: 0.55 },
@@ -1249,7 +1272,7 @@ var Snd = (function () {
       if (!AC) return false;
       ac = new AC();
       master = ac.createGain();
-      var comp = ac.createDynamicsCompressor();
+      comp = ac.createDynamicsCompressor();
       master.connect(comp); comp.connect(ac.destination);
     }
     if (ac.state === 'suspended') ac.resume();
@@ -1297,6 +1320,19 @@ var Snd = (function () {
       if (master) master.gain.value = vol * vol * 0.9;
     },
     reset: function () { next = 0; },
+    /* audio for video export: a copy of everything the engine plays, as a stream to add to the recording (null when sound is off) */
+    recordStream: function () {
+      if (mode === 'off' || !ensure() || !ac.createMediaStreamDestination) return null;
+      recDest = ac.createMediaStreamDestination();
+      recGain = ac.createGain(); recGain.gain.value = 2.2;            // videos get played back at all kinds of volumes: make them louder than the live sound
+      var lim = ac.createDynamicsCompressor();                         // ...with a limiter so loud passages cannot clip
+      lim.threshold.value = -4; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.003; lim.release.value = 0.1;
+      comp.connect(recGain); recGain.connect(lim); lim.connect(recDest);
+      return recDest.stream;
+    },
+    stopRecord: function () {
+      if (recDest) { try { comp.disconnect(recGain); } catch (e) { /* already gone */ } recDest = null; recGain = null; }
+    },
     unlock: function () { if (mode !== 'off') ensure(); },        // browsers only allow sound after a click or tap
     on: function () { return mode !== 'off'; },
     preview: function () {
@@ -1434,6 +1470,7 @@ function paint(ctx, size, card, f, prog, o) {
   var n = card.digits.length, xs = card.xs, ys = card.ys, sc = f.sc, ox = f.ox, oy = f.oy, ls = o.lwScale;
   var dark = !!o.dark, glow = o.glow || 0;
   if (!(prog > 0)) prog = 0;                                     // the first frame can arrive a hair before the start time
+  o.text = card.wall || card.digits;                             // the digit-wall backdrop prints this number
   drawBackground(ctx, size, o);
 
   if (o.axes) {
@@ -1595,7 +1632,7 @@ function frame(now) {
     if (progress < c.digits.length) running = true;
   });
   updateRace(!running);
-  if (!exp) {                                          // no sound while a GIF or video is being made
+  if (!exp || exp.audio) {                             // sound is live in the view and in video recordings (a GIF has none)
     Snd.tick(before, Math.min(progress, maxDigits()), cards, rate);
     if (!running) Snd.finale();
   }
@@ -1633,7 +1670,7 @@ function makeCard(label, digits) {
     '<div class="digits"><span class="done"></span><span class="rest"></span></div>' +
     '<div class="card-foot"><button class="ghost small save" type="button">Save image</button><button class="ghost small poster" type="button">Save poster</button><button class="ghost small enter" type="button">🏆 Enter</button></div>';
   var card = {
-    el: el, label: label, digits: digits, shown: -1, tipDist: 0, tipPath: 0,
+    el: el, label: label, digits: digits, wall: digitWall(digits, lastIntLen), shown: -1, tipDist: 0, tipPath: 0,
     canvas: el.querySelector('canvas'),
     doneEl: el.querySelector('.done'), restEl: el.querySelector('.rest'),
     countEl: el.querySelector('.card-count'),
@@ -1799,7 +1836,7 @@ function abortExport() {
 function makeComposer(list, cell, direct, axes) {
   var n = list.length;
   var cols = n === 1 ? 1 : (n <= 4 ? 2 : 3), rows = Math.ceil(n / cols);
-  var gap = 24, head = 46, foot = 44, top = 70, bottom = 60, cellH = head + cell + foot;
+  var gap = 24, head = 60, foot = 44, top = 70, bottom = 60, cellH = head + cell + foot;
   var W = gap + cols * (cell + gap), H = top + rows * (cellH + gap) + bottom;
   W += W % 2; H += H % 2;
   var cv = document.createElement('canvas');
@@ -1824,7 +1861,7 @@ function makeComposer(list, cell, direct, axes) {
     list.forEach(function (c, i) {
       var x = gap + (i % cols) * (cell + gap), y = top + Math.floor(i / cols) * (cellH + gap);
       cx.fillStyle = look.bg; rr(cx, x, y, cell, cellH, 22); cx.fill();
-      cx.textAlign = 'left'; cx.fillStyle = P.ink; cx.font = '700 20px ' + FONT;
+      cx.textAlign = 'left'; cx.fillStyle = P.ink; cx.font = '800 32px ' + FONT;
       cx.textBaseline = 'middle';
       cx.fillText(ellipsize(cx, c.label, cell - 28), x + 14, y + head / 2 + 2);
       if (direct) {
@@ -1881,18 +1918,21 @@ function exportVideo() {
   var maxN = comp.maxN, composite = comp.composite;
 
   var chunks = [];
-  var rec = new MediaRecorder(comp.cv.captureStream(30), { mimeType: mime, videoBitsPerSecond: 5000000 });
-  var state = { recorder: rec, raf: 0, aborted: false };
+  var stream = comp.cv.captureStream(30), audio = Snd.recordStream();
+  if (audio) audio.getAudioTracks().forEach(function (t) { stream.addTrack(t); });
+  var rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 5000000 });
+  var state = { recorder: rec, raf: 0, aborted: false, audio: !!audio };
   exp = state;
   rec.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
   rec.onstop = function () {
+    Snd.stopRecord();
     speedOverride = 0;
     videoBtn.disabled = false;
     if (exp === state) exp = null;
     if (state.aborted) { setStatus('Recording cancelled.'); return; }
     var blob = new Blob(chunks, { type: mime.split(';')[0] });
     download(blob, 'digitwalker-' + slug(cards.map(function (c) { return c.label; }).join('_vs_')) + (mime.indexOf('mp4') >= 0 ? '.mp4' : '.webm'));
-    setStatus('Animation saved (' + (mime.indexOf('mp4') >= 0 ? 'MP4' : 'WebM') + ').', 6000);
+    setStatus('Animation saved (' + (mime.indexOf('mp4') >= 0 ? 'MP4' : 'WebM') + (state.audio ? ', with sound' : '') + ').', 6000);
   };
 
   videoBtn.disabled = true;
