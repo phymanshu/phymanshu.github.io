@@ -1089,8 +1089,8 @@ function digitWall(d, intLen) {                                  // "3.14159..."
 
 /* ================= copyright, licence and watermark ================= */
 var OWNER = 'Himanshu Sharma', YEAR = 2026, SITE = 'phymanshu.github.io';
-var SUBSCRIBE_URL = '';          // <- your checkout page (Stripe Payment Link, Ko-fi, Gumroad, ...). While empty, the dialog says "opening soon".
-var LICENSE_PUBKEY = {"kty":"EC","crv":"P-256","x":"eYYtg0uRU8B63vp55cvh9_KDSnQRpXjFyM4gEr-WWBo","y":"CGdNRx7qWSgUrecvbI-rClX2fhCKfZO86WVGKF9NABM"}; // <- placeholder. Run digitwalker-license-tool.html (Quick setup): it puts YOUR public key here.
+var SUBSCRIBE_URL = 'https://buymeacoffee.com/shymanshu';          // <- your checkout page (Stripe Payment Link, Ko-fi, Gumroad, ...). While empty, the dialog says "opening soon".
+var LICENSE_PUBKEY = {"kty":"EC","crv":"P-256","x":"2vNonSksxPZyznCPyWl0xokey664QPWSDe2MFeRovvk","y":"vjyrY4KVNK5z2Fav-4GXNnLYcgD6ydlA9FiDG6cAdvE"}; // <- placeholder. Run digitwalker-license-tool.html (Quick setup): it puts YOUR public key here.
 var LICENSE_STORE = 'digitwalker-licence';
 var license = { ok: false, sub: '', exp: 0, why: '' };
 function layoutMode() { return license.ok && layoutSel.value === 'studio' ? 'studio' : 'tiles'; }   // without a licence it is always the plain tiles, whatever the page is told
