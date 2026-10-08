@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="copyright" content="© 2026 Himanshu Sharma. All rights reserved.">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Digitwalker</title>
 <meta name="description" content="Numbers go for a walk. Every digit is a step length and the path turns after each step. Type an expression, watch it draw, and race numbers against each other.">
@@ -69,12 +70,11 @@ main{
   box-shadow:inset 0 0 0 1.5px var(--rule);
   display:flex;flex-direction:column;gap:.6rem;min-width:0;
 }
-.card-head{display:flex;align-items:baseline;justify-content:space-between;gap:.75rem}
-.card-title{
-  font:800 1.7rem/1.1 var(--sans);color:var(--ink);letter-spacing:-.01em;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;
-}
-.card-count{font:600 .85rem var(--mono);color:var(--muted);flex-shrink:0}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:.75rem;min-height:2.6rem}
+.card-title{display:flex;align-items:center;min-width:0;flex:1 1 auto}
+.card-title canvas{width:auto;aspect-ratio:auto;border-radius:0;background:transparent;display:block}
+.card-meta{display:flex;flex-direction:column;align-items:flex-end;gap:.1rem;flex-shrink:0;font:600 .85rem/1.25 var(--mono);color:var(--muted);text-align:right}
+.card-count{color:var(--ink)}
 canvas{display:block;width:100%;aspect-ratio:1;border-radius:.8rem;background:#fff}
 .stats{display:flex;justify-content:space-between;gap:.5rem;flex-wrap:wrap;font:500 .75rem var(--mono);color:var(--muted)}
 .stats b{color:var(--ink);font-weight:700}
@@ -442,6 +442,30 @@ button.swatch{width:1.2rem;height:1.2rem}
 }
 .sweep-row .mini input:focus{background:#fff;box-shadow:inset 0 0 0 2px var(--signal-bright);outline:none}
 button[aria-pressed="true"]#sweepBtn{background:var(--signal-bright);color:var(--deep);box-shadow:none}
+
+/* --- plan, paywall dialog --- */
+.plan-row{display:flex;align-items:center;justify-content:space-between;gap:.6rem}
+.plan-badge{font:700 .78rem var(--sans);padding:.3rem .75rem;border-radius:2rem;background:var(--paper);color:var(--muted);box-shadow:inset 0 0 0 1.5px var(--rule)}
+.plan-badge.is-pro{background:var(--signal-bright);color:var(--deep);box-shadow:none}
+dialog#paywall{
+  border:none;border-radius:1.4rem;padding:1.4rem 1.5rem 1.2rem;width:min(30rem,92vw);box-sizing:border-box;
+  background:#fff;color:var(--ink);font-family:var(--sans);box-shadow:0 24px 70px rgba(8,16,28,.4);
+}
+dialog#paywall::backdrop{background:rgba(8,16,28,.55);backdrop-filter:blur(3px)}
+.pw-title{margin:0 0 .5rem;font:800 1.3rem/1.2 var(--sans)}
+.pw-lead{margin:.2rem 0 .3rem;font:500 .92rem/1.5 var(--sans)}
+.pw-list{margin:.2rem 0 .9rem;padding-left:1.15rem;font:400 .9rem/1.6 var(--sans)}
+.pw-row{display:flex;align-items:center;gap:.8rem;margin:.6rem 0;flex-wrap:wrap}
+.pw-end{justify-content:flex-end;margin-bottom:0}
+.pw-cta{display:inline-block;padding:.65rem 1.3rem;border-radius:2rem;background:var(--signal-bright);color:var(--deep);font:700 .92rem var(--sans);text-decoration:none}
+.pw-cta:hover{filter:brightness(1.06)}
+.pw-soon,.pw-fine{font:400 .78rem/1.45 var(--sans);color:var(--muted)}
+.pw-fine{margin:.4rem 0 0}
+.pw-msg{font:600 .82rem var(--sans);color:var(--muted)}
+.pw-msg.bad{color:#b3261e}.pw-msg.good{color:#1b7a3a}
+#pwKey{width:100%;min-height:4.4rem;margin-top:.35rem;box-sizing:border-box;font:500 .72rem/1.35 var(--mono);color:var(--ink);background:var(--paper);border:1.5px solid var(--rule);border-radius:.8rem;padding:.55rem .65rem;resize:vertical;word-break:break-all}
+#pwKey:focus{outline:2px solid var(--signal-bright);outline-offset:1px}
+.pair.one{grid-template-columns:1fr}
 </style>
 </head>
 <body>
@@ -689,20 +713,28 @@ button[aria-pressed="true"]#sweepBtn{background:var(--signal-bright);color:var(-
         </div>
 
         <div class="pane" id="pane-share" role="tabpanel" aria-labelledby="tab-btn-share" hidden>
+          <div class="plan-row"><span class="plan-badge" id="planBadge">Free plan</span><button class="ghost small" id="planBtn" type="button">Unlock MP4</button></div>
+          <p class="hint" id="planHint"></p>
           <div class="pair">
             <label class="stack">Save as
               <select id="fmtSel">
                 <option value="gif" selected>GIF</option>
+                <option value="video">Video (MP4)</option>
                 <option value="png">Still image (PNG)</option>
-                <option value="video">Video (WebM / MP4)</option>
               </select>
             </label>
-            <label class="stack" id="gifQualRow">Size
-              <select id="gifQual">
-                <option value="std" selected>Standard</option>
-                <option value="hi">High (larger file)</option>
+            <label class="stack">Layout
+              <select id="layoutSel">
+                <option value="tiles" selected>Tiles</option>
               </select>
             </label>
+          </div>
+          <div class="row-ctrl" id="gifQualRow">
+            <label for="gifQual">GIF / image size</label>
+            <select id="gifQual">
+              <option value="std" selected>Standard</option>
+              <option value="hi">High (larger file)</option>
+            </select>
           </div>
           <div class="btn-row">
             <button class="ghost" id="linkBtn" type="button">Copy link</button>
@@ -796,8 +828,29 @@ button[aria-pressed="true"]#sweepBtn{background:var(--signal-bright);color:var(-
 <button class="gal-float pulse" id="galFloat" type="button" hidden>🎨 Gallery <span class="new-badge" id="galNewFloat">NEW</span></button>
 
 <footer>
-  Part of Himanshu Sharma's <a href="https://phymanshu.github.io/#playground">science playground</a> · <a href="#gallery">🎨 Visit the Rational Art Gallery</a><span id="visitNote" hidden> · Visits are counted anonymously, without cookies.</span>
+  © 2026 Himanshu Sharma. All rights reserved. · Part of Himanshu Sharma's <a href="https://phymanshu.github.io/#playground">science playground</a> · <a href="#gallery">🎨 Visit the Rational Art Gallery</a><span id="visitNote" hidden> · Visits are counted anonymously, without cookies.</span>
 </footer>
+
+<dialog id="paywall" aria-labelledby="pwTitle">
+  <h2 id="pwTitle" class="pw-title">MP4 export is for supporters</h2>
+  <div id="pwFree">
+    <p class="pw-lead">GIFs stay free. Supporters also get:</p>
+    <ul class="pw-list">
+      <li>MP4 video with sound</li>
+      <li>High-quality GIFs and still images, without the diagonal watermark</li>
+    </ul>
+    <p class="pw-row"><a class="pw-cta" id="pwSubscribe" target="_blank" rel="noopener" href="#">Subscribe →</a><span class="pw-soon" id="pwSoon" hidden>Subscriptions are opening soon.</span></p>
+    <label class="sub-label" for="pwKey">Already subscribed? Paste your licence key</label>
+    <textarea id="pwKey" spellcheck="false" autocomplete="off" placeholder="eyJ2IjoxLC…"></textarea>
+    <p class="pw-row"><button class="ghost" id="pwUnlock" type="button">Unlock</button><span class="pw-msg" id="pwMsg" role="status" aria-live="polite"></span></p>
+  </div>
+  <div id="pwPro" hidden>
+    <p class="pw-lead" id="pwProText"></p>
+    <p class="pw-row"><button class="ghost small" id="pwRemove" type="button">Remove the key from this browser</button></p>
+  </div>
+  <p class="pw-fine">Free exports carry the © notice and, for GIFs and images, a watermark.</p>
+  <p class="pw-row pw-end"><button class="ghost small" id="pwClose" type="button">Close</button></p>
+</dialog>
 
 <script>
 (function () {
@@ -830,7 +883,7 @@ var plots = $('plots'), exprList = $('exprList'), errorsEl = $('errors'), raceEl
 var digitsSel = $('digitsSel'), speedRange = $('speedRange'), speedVal = $('speedVal');
 var turnAngle = $('turnAngle'), turnRange = $('turnRange'), dirSel = $('dirSel'), cmapSel = $('cmapSel');
 var c1Input = $('c1Input'), c2Input = $('c2Input'), customRow = $('customRow'), bgInput = $('bgInput'), bgStyleSel = $('bgStyleSel');
-var glowRange = $('glowRange'), glowVal = $('glowVal'), tipSel = $('tipSel'), sndSel = $('sndSel'), volRange = $('volRange'), volVal = $('volVal');
+var layoutSel = $('layoutSel'), glowRange = $('glowRange'), glowVal = $('glowVal'), tipSel = $('tipSel'), sndSel = $('sndSel'), volRange = $('volRange'), volVal = $('volVal');
 var skipInt = { checked: false, addEventListener: function () {} }, axesToggle = $('axesToggle');   // the "skip integer part" option was removed
 var drawBtn = $('drawBtn'), addBtn = $('addBtn'), replayBtn = $('replayBtn'), finishBtn = $('finishBtn');
 var linkBtn = $('linkBtn'), videoBtn = $('videoBtn'), marathonBtn = $('marathonBtn');
@@ -1033,6 +1086,249 @@ function digitWall(d, intLen) {                                  // "3.14159..."
   if (d.length <= intLen) return d;
   return (intLen > 0 ? d.slice(0, intLen) : '0') + '.' + d.slice(intLen);
 }
+
+/* ================= copyright, licence and watermark ================= */
+var OWNER = 'Himanshu Sharma', YEAR = 2026, SITE = 'phymanshu.github.io';
+var SUBSCRIBE_URL = '';          // <- your checkout page (Stripe Payment Link, Ko-fi, Gumroad, ...). While empty, the dialog says "opening soon".
+var LICENSE_PUBKEY = {"kty": "EC", "crv": "P-256", "x": "hivSkE411d2JsC0AuMkUau9STheeDLdPJXgyvQNQcJ8", "y": "34BLj8m-EM3NIcrtUwJ0K3Eoj_vlRqXpBIlT2eFAUMk"}; // <- placeholder. Run digitwalker-license-tool.html (Quick setup): it puts YOUR public key here.
+var LICENSE_STORE = 'digitwalker-licence';
+var license = { ok: false, sub: '', exp: 0, why: '' };
+function layoutMode() { return license.ok && layoutSel.value === 'studio' ? 'studio' : 'tiles'; }   // without a licence it is always the plain tiles, whatever the page is told
+
+function b64uBytes(str) {
+  str = str.replace(/-/g, '+').replace(/_/g, '/');
+  while (str.length % 4) str += '=';
+  var bin = atob(str), out = new Uint8Array(bin.length);
+  for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+/* A licence key is  <payload>.<signature>  (both base64url). The payload says who it is for and when it ends; the signature
+   can only be made with your private key, so nobody can write a valid key themselves. Resolves to the payload or rejects with a message. */
+function verifyLicense(token) {
+  token = String(token || '').replace(/["'\s]/g, '');
+  var parts = token.split('.');
+  if (parts.length !== 2 || !parts[0] || !parts[1]) return Promise.reject(new Error('That does not look like a licence key.'));
+  if (!(window.crypto && crypto.subtle)) return Promise.reject(new Error('Checking a key needs a secure (https) page.'));
+  return crypto.subtle.importKey('jwk', LICENSE_PUBKEY, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify'])
+    .then(function (key) { return crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, key, b64uBytes(parts[1]), new TextEncoder().encode(parts[0])); })
+    .then(function (ok) {
+      if (!ok) throw new Error('This key is not valid.');
+      var payload = JSON.parse(new TextDecoder().decode(b64uBytes(parts[0])));
+      if (payload.exp && payload.exp * 1000 < Date.now()) throw new Error('This key expired on ' + new Date(payload.exp * 1000).toLocaleDateString() + '.');
+      return payload;
+    })
+    .catch(function (e) { throw e && e.message && /key|secure|expired/.test(e.message) ? e : new Error('This key is not valid.'); });
+}
+function storeGet() { try { return localStorage.getItem(LICENSE_STORE) || ''; } catch (e) { return ''; } }
+function storeSet(v) { try { if (v) localStorage.setItem(LICENSE_STORE, v); else localStorage.removeItem(LICENSE_STORE); } catch (e) { /* private mode */ } }
+
+/* © mark on every export. Free exports also get a faint diagonal watermark across the picture. Draws inside (0,0)-(w,h). */
+function drawMark(c, w, h, free) {
+  c.save();
+  c.textBaseline = 'alphabetic';
+  if (free) {
+    var big = Math.max(12, w * 0.062);
+    c.translate(w / 2, h / 2); c.rotate(-0.5);
+    c.font = '700 ' + big + 'px ' + FONT; c.textAlign = 'center';
+    c.fillStyle = 'rgba(255,255,255,0.17)'; c.strokeStyle = 'rgba(0,0,0,0.12)'; c.lineWidth = Math.max(1, big * 0.06);
+    for (var r = -4; r <= 4; r++) { c.strokeText(SITE, 0, r * big * 3.2); c.fillText(SITE, 0, r * big * 3.2); }
+    c.rotate(0.5); c.translate(-w / 2, -h / 2);
+  }
+  var fs = Math.max(10, w * 0.026), txt = w < 420 ? '© ' + OWNER : '© ' + YEAR + ' ' + OWNER + ' · ' + SITE;
+  c.font = '600 ' + fs + 'px ' + FONT; c.textAlign = 'right';
+  c.lineJoin = 'round'; c.lineWidth = fs * 0.2; c.strokeStyle = 'rgba(0,0,0,0.5)'; c.strokeText(txt, w - fs * 0.8, h - fs * 0.9);
+  c.fillStyle = 'rgba(255,255,255,0.9)'; c.fillText(txt, w - fs * 0.8, h - fs * 0.9);
+  c.restore();
+}
+
+/* ================= typeset titles: π, φ, √, stacked fractions, powers (LaTeX-style, drawn on a canvas) ================= */
+var SERIF = '"Latin Modern Math", "STIX Two Math", "Cambria Math", "Times New Roman", Times, "DejaVu Serif", serif';
+var CSYM = { pi: 'π', phi: 'φ', e: 'e', tau: 'τ' };
+var texMeasure = null;
+
+/* the expression, as a tree (same grammar as the calculator, but nothing is calculated) */
+function texParse(src) {
+  var toks = tokenize(src), p = 0;
+  var CONSTS = { pi: 1, e: 1, phi: 1, tau: 1 };
+  var FUNS = { sqrt: 1, cbrt: 1, ln: 1, log: 1, log10: 1, log2: 1, exp: 1, abs: 1, sin: 1, cos: 1, tan: 1, asin: 1, acos: 1, atan: 1, sinh: 1, cosh: 1, tanh: 1 };
+  function isOp(v) { return toks[p] && toks[p].t === 'op' && toks[p].v === v; }
+  function expr() {
+    var v = term();
+    while (isOp('+') || isOp('-')) { var o = toks[p++].v; v = { k: 'bin', op: o, l: v, r: term() }; }
+    return v;
+  }
+  function term() {
+    var v = unary();
+    for (;;) {
+      if (isOp('*')) { p++; v = { k: 'mul', sign: true, l: v, r: unary() }; }
+      else if (isOp('/')) { p++; v = { k: 'frac', n: v, d: unary() }; }
+      else if (toks[p] && (toks[p].t === 'id' || isOp('('))) { v = { k: 'mul', sign: false, l: v, r: unary() }; }
+      else break;
+    }
+    return v;
+  }
+  function unary() {
+    if (isOp('-')) { p++; return { k: 'neg', x: unary() }; }
+    if (isOp('+')) { p++; return unary(); }
+    return power();
+  }
+  function power() {
+    var b = postfix();
+    if (isOp('^')) { p++; return { k: 'pow', b: b, e: unary() }; }
+    return b;
+  }
+  function postfix() {
+    var v = atom();
+    while (isOp('!')) { p++; v = { k: 'fact', x: v }; }
+    return v;
+  }
+  function atom() {
+    var t = toks[p];
+    if (!t) throw new Error('end');
+    if (t.t === 'num') { p++; return { k: 'num', v: t.v }; }
+    if (isOp('(')) {
+      p++; var v = expr();
+      if (!isOp(')')) throw new Error(')');
+      p++; return { k: 'group', x: v };
+    }
+    if (t.t === 'id') {
+      p++;
+      if (CONSTS[t.v]) return { k: 'const', v: t.v };
+      if (FUNS[t.v]) {
+        var a;
+        if (isOp('(')) { p++; a = expr(); if (!isOp(')')) throw new Error(')'); p++; } else a = postfix();
+        return { k: 'fn', name: t.v, x: a };
+      }
+    }
+    throw new Error('?');
+  }
+  if (!toks.length) throw new Error('empty');
+  var r = expr();
+  if (p < toks.length) throw new Error('left over');
+  return r;
+}
+
+/* layout boxes: { w, a (above the baseline), d (below it), paint(ctx, x, baselineY, colour) } */
+function texT(str, size, style, family) {
+  var m = texMeasure || (texMeasure = document.createElement('canvas').getContext('2d')), font = (style || '') + size + 'px ' + (family || SERIF);
+  m.font = font;
+  return { w: m.measureText(str).width, a: 0.74 * size, d: 0.24 * size, paint: function (c, x, y, col) {
+    c.fillStyle = col; c.font = font; c.textBaseline = 'alphabetic'; c.textAlign = 'left'; c.fillText(str, x, y);
+  } };
+}
+function texGap(w) { return { w: w, a: 0, d: 0, paint: function () {} }; }
+function texRow(list) {
+  var w = 0, a = 0, d = 0;
+  list.forEach(function (b) { w += b.w; if (b.a > a) a = b.a; if (b.d > d) d = b.d; });
+  return { w: w, a: a, d: d, paint: function (c, x, y, col) { var xx = x; list.forEach(function (b) { b.paint(c, xx, y, col); xx += b.w; }); } };
+}
+function texDelim(kind, inner, size) {                                     // ( ) or | stretched to the height of what is inside
+  var h = inner.a + inner.d, k = Math.max(1, h / (0.98 * size)), up = (inner.a - inner.d) / 2, w = (kind === '|' ? 0.24 : 0.36) * size;
+  var pad = kind === '|' ? 0.06 * size : 0;
+  return { w: w, a: inner.a + pad, d: inner.d + pad, paint: function (c, x, y, col) {
+    c.fillStyle = col;
+    if (kind === '|') { c.fillRect(x + w * 0.4, y - inner.a - pad, Math.max(1, 0.06 * size), h + 2 * pad); return; }
+    c.save(); c.translate(x, y - up); c.scale(1, k);
+    c.font = size + 'px ' + SERIF; c.textBaseline = 'alphabetic'; c.textAlign = 'left'; c.fillText(kind, 0, 0.25 * size);
+    c.restore();
+  } };
+}
+function texBox(n, size) {
+  var L = function (x, sz) { return texBox(x, sz || size); }, T = texT, gap = texGap, row = texRow, strip = function (x) { while (x.k === 'group') x = x.x; return x; };
+  var inner, b;
+  switch (n.k) {
+    case 'num': return T(n.v, size);
+    case 'const': return T(CSYM[n.v], size, 'italic ');
+    case 'neg': return row([T('−', size), L(n.x)]);
+    case 'bin': return row([L(n.l), gap(0.24 * size), T(n.op === '+' ? '+' : '−', size), gap(0.24 * size), L(n.r)]);
+    case 'mul': return n.sign ? row([L(n.l), gap(0.2 * size), T('×', size), gap(0.2 * size), L(n.r)]) : row([L(n.l), gap(0.08 * size), L(n.r)]);
+    case 'fact': return row([L(n.x), T('!', size)]);
+    case 'group': inner = L(n.x); return row([texDelim('(', inner, size), inner, texDelim(')', inner, size)]);
+    case 'frac': {
+      var fs = size * 0.9, nb = L(strip(n.n), fs), db = L(strip(n.d), fs), pad = 0.12 * size, w = Math.max(nb.w, db.w) + 2 * pad;
+      var axis = 0.27 * size, bar = Math.max(1, 0.055 * size), g = 0.12 * size;
+      var up = axis + bar / 2 + g + nb.d, down = db.a + g + bar / 2 - axis;
+      return { w: w, a: up + nb.a, d: down + db.d, paint: function (c, x, y, col) {
+        nb.paint(c, x + (w - nb.w) / 2, y - up, col); db.paint(c, x + (w - db.w) / 2, y + down, col);
+        c.fillStyle = col; c.fillRect(x + pad * 0.4, y - axis - bar / 2, w - pad * 0.8, bar);
+      } };
+    }
+    case 'pow': {
+      b = L(n.b); var e = L(n.e, size * 0.62), shift = Math.max(0.42 * size, b.a - 0.28 * size);
+      return { w: b.w + e.w + 0.05 * size, a: Math.max(b.a, shift + e.a), d: b.d, paint: function (c, x, y, col) {
+        b.paint(c, x, y, col); e.paint(c, x + b.w + 0.03 * size, y - shift, col);
+      } };
+    }
+    case 'fn': {
+      if (n.name === 'sqrt' || n.name === 'cbrt') {
+        inner = L(strip(n.x)); var rw = 0.62 * size, tail = 0.1 * size, root = n.name === 'cbrt', idx = root ? T('3', size * 0.45) : null;
+        return { w: rw + inner.w + tail, a: inner.a + 0.2 * size, d: inner.d + 0.04 * size, paint: function (c, x, y, col) {
+          inner.paint(c, x + rw, y, col);
+          var yTop = y - inner.a - 0.12 * size, yBot = y + inner.d + 0.02 * size;
+          c.strokeStyle = col; c.lineWidth = Math.max(1, 0.055 * size); c.lineJoin = 'round'; c.lineCap = 'round';
+          c.beginPath(); c.moveTo(x, y - 0.3 * size); c.lineTo(x + 0.12 * size, y - 0.38 * size); c.lineTo(x + 0.3 * size, yBot);
+          c.lineTo(x + rw - 0.04 * size, yTop); c.lineTo(x + rw + inner.w + tail, yTop); c.stroke();
+          if (idx) idx.paint(c, x + 0.02 * size, y - 0.46 * size, col);
+        } };
+      }
+      if (n.name === 'abs') { inner = L(n.x); return row([texDelim('|', inner, size), inner, texDelim('|', inner, size)]); }
+      var NAMES = { log10: 'log₁₀', log2: 'log₂' }, nm = T(NAMES[n.name] || n.name, size), atom = n.x.k === 'num' || n.x.k === 'const';
+      if (atom) return row([nm, gap(0.18 * size), L(n.x)]);
+      inner = L(n.x.k === 'group' ? n.x.x : n.x);
+      return row([nm, gap(0.06 * size), texDelim('(', inner, size), inner, texDelim(')', inner, size)]);
+    }
+  }
+  return T('?', size);
+}
+
+/* first five digits, with the decimal point: 3.1415… */
+function approxText(card) {
+  var w = card.wall || card.digits, cnt = 0, out = '';
+  for (var i = 0; i < w.length && cnt < 5; i++) { out += w.charAt(i); if (w.charAt(i) !== '.') cnt++; }
+  return out + (card.digits.length > 5 ? '…' : '');
+}
+/* "π = 3.1415…" as one box (cached per size) */
+function titleBox(card, size) {
+  var key = Math.round(size * 4) / 4;
+  card.tcache = card.tcache || {};
+  if (card.tcache[key]) return card.tcache[key];
+  var ast = null;
+  try { ast = texParse(card.label); } catch (e) { ast = null; }
+  var parts = [ast ? texBox(ast, size) : texT(card.label, size, '700 ', FONT)];
+  if (!(ast && ast.k === 'num')) parts.push(texGap(0.3 * size), texT('=', size), texGap(0.3 * size), texT(approxText(card), size));
+  return (card.tcache[key] = texRow(parts));
+}
+function titleFit(card, maxW, maxH, size) {                    // shrink until it fits the space it has
+  var b = titleBox(card, size), guard = 0;
+  while ((b.w > maxW || b.a + b.d > maxH) && size > 10 && guard++ < 40) { size = Math.max(10, size * 0.93); b = titleBox(card, size); }
+  return b;
+}
+function paintTitle(c, card, x, yMid, maxW, maxH, size, color, align) {
+  var b = titleFit(card, maxW, maxH, size), x0 = align === 'center' ? x - b.w / 2 : x;
+  b.paint(c, x0, yMid + (b.a - b.d) / 2, color);
+  return b;
+}
+function renderCardTitle(card) {                               // the title at the top left of a card is a small canvas
+  var host = card.el.querySelector('.card-title'), cv = document.createElement('canvas');
+  var dpr = window.devicePixelRatio || 1, box = titleBox(card, 34), w = Math.ceil(box.w) + 4, h = Math.ceil(box.a + box.d) + 8;
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  cv.style.width = w + 'px'; cv.style.height = 'auto'; cv.style.maxWidth = '100%';
+  cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', card.label + ' = ' + approxText(card));
+  var c = cv.getContext('2d'); c.scale(dpr, dpr);
+  box.paint(c, 2, 4 + box.a, '#16222E');
+  host.title = card.label; host.appendChild(cv);
+}
+
+/* "turn 90° left" and the sentence that says what the walker is doing right now */
+function turnLabel() { return 'turn ' + turnDeg() + '° ' + (dirSel.value === 'cw' ? 'right' : 'left'); }
+function ruleStatic() { return 'Each digit is a step: walk that many units, ' + turnLabel() + ', repeat.'; }
+function ruleParts(card, prog, dist, plen) {                    // [headline, detail] for the digit being walked right now
+  var n = card.digits.length;
+  if (prog >= n) return ['All ' + n + ' digits walked', dist == null ? '' : 'a path of ' + fmt(plen) + ' units, ending ' + fmt(dist) + ' u from the start'];
+  var full = Math.max(0, Math.floor(prog)), d = card.digits.charCodeAt(full) - 48;
+  return ['Digit ' + (full + 1) + ' is ' + d, 'walk ' + d + (d === 1 ? ' unit' : ' units') + ', then ' + turnLabel()];
+}
+function ruleLive(card, prog) { var r = ruleParts(card, prog); return r[1] ? r[0] + ': ' + r[1] : r[0] + '.'; }
 
 /* ================= look: backgrounds, glow and moving-point styles ================= */
 var WALK_BGS = [['white', '#ffffff'], ['cream', '#f6f0e4'], ['blush', '#fff1f6'], ['mint', '#eaf8f1'], ['night', '#0e1520'], ['navy', '#0b1e3a'],
@@ -1487,11 +1783,12 @@ function paint(ctx, size, card, f, prog, o) {
   var full = Math.min(Math.floor(prog), n), frac = Math.min(prog, n) - full, i;
   var cores = (glow > 0 && dark) ? coreColors(card, glow) : card.colors;
 
-  if (o.live) {
-    var px = ctx.canvas.width, L = card.layer;
+  var slot = o.live ? 'layer' : (o.slot || '');
+  if (slot) {
+    var px = o.live ? ctx.canvas.width : Math.max(1, Math.round(size * (Math.abs(ctx.getTransform().a) || 1))), L = card[slot];
     var key = [px, sc, ox, oy, glow, ls, dark ? 1 : 0, card.rev].join('|');
     if (!L || L.key !== key || L.colors !== card.colors || L.n > full) {
-      if (!L) { L = card.layer = { cv: document.createElement('canvas'), n: 0 }; L.cx = L.cv.getContext('2d'); }
+      if (!L) { L = card[slot] = { cv: document.createElement('canvas'), n: 0 }; L.cx = L.cv.getContext('2d'); }
       L.cv.width = px; L.cv.height = px;
       L.cx.setTransform(px / size, 0, 0, px / size, 0, 0);
       L.cx.lineCap = 'round'; L.cx.lineJoin = 'round'; L.cx.lineWidth = lw;
@@ -1532,11 +1829,12 @@ function render(card, prog) {
   card.tipPath = card.pre[full] + (full < n ? frac * (card.digits.charCodeAt(full) - 48) : 0);
   setText(card.distEl, fmt(card.tipDist));
   setText(card.plenEl, fmt(card.tipPath));
+  setText(card.angleEl, turnLabel());
   if (full !== card.shown) {
     card.shown = full;
     card.doneEl.textContent = card.digits.slice(0, full);
     card.restEl.textContent = card.digits.slice(full);
-    card.countEl.textContent = full + ' / ' + n;
+    card.countEl.textContent = 'digit ' + full + ' / ' + n;
   }
 }
 
@@ -1633,8 +1931,10 @@ function frame(now) {
   });
   updateRace(!running);
   if (!exp || exp.audio) {                             // sound is live in the view and in video recordings (a GIF has none)
-    Snd.tick(before, Math.min(progress, maxDigits()), cards, rate);
-    if (!running) Snd.finale();
+    try {
+      Snd.tick(before, Math.min(progress, maxDigits()), cards, rate);
+      if (!running) Snd.finale();
+    } catch (err) { console.error('sound error (ignored):', err); }
   }
   raf = running ? requestAnimationFrame(frame) : 0;   // done -> freeze, loop stops
 }
@@ -1664,7 +1964,7 @@ function makeCard(label, digits) {
   var el = document.createElement('article');
   el.className = 'card';
   el.innerHTML =
-    '<div class="card-head"><span class="card-title"></span><span class="card-count"></span></div>' +
+    '<div class="card-head"><span class="card-title"></span><span class="card-meta"><span class="card-count"></span><span class="card-angle"></span></span></div>' +
     '<canvas role="img"></canvas>' +
     '<div class="stats"><span>distance <b class="dist">0.00</b> u</span><span>path <b class="plen">0.00</b> u</span></div>' +
     '<div class="digits"><span class="done"></span><span class="rest"></span></div>' +
@@ -1673,17 +1973,20 @@ function makeCard(label, digits) {
     el: el, label: label, digits: digits, wall: digitWall(digits, lastIntLen), shown: -1, tipDist: 0, tipPath: 0,
     canvas: el.querySelector('canvas'),
     doneEl: el.querySelector('.done'), restEl: el.querySelector('.rest'),
-    countEl: el.querySelector('.card-count'),
+    countEl: el.querySelector('.card-count'), angleEl: el.querySelector('.card-angle'),
     distEl: el.querySelector('.dist'), plenEl: el.querySelector('.plen')
   };
-  el.querySelector('.card-title').textContent = label;
-  el.querySelector('.card-title').title = label;
+  renderCardTitle(card);
   card.canvas.setAttribute('aria-label', 'Digit walk of ' + label + ' (' + digits.length + ' digits)');
   card.ctx = card.canvas.getContext('2d');
   el.querySelector('.save').addEventListener('click', function () {
+    var out = document.createElement('canvas'), oc;
+    out.width = card.canvas.width; out.height = card.canvas.height;
+    oc = out.getContext('2d'); oc.drawImage(card.canvas, 0, 0);
+    drawMark(oc, out.width, out.height, !license.ok);
     var a = document.createElement('a');
     a.download = 'digitwalker-' + slug(label) + '.png';
-    a.href = card.canvas.toDataURL('image/png');
+    a.href = out.toDataURL('image/png');
     a.click();
   });
   el.querySelector('.poster').addEventListener('click', function () { savePoster(card); });
@@ -1779,12 +2082,13 @@ function savePoster(card) {
 
   c.save(); c.translate(m, m);
   paint(c, S, card, fit(card, S), 1e9, Object.assign({}, look, { lwScale: S / 460, tip: false, axes: false }));
+  drawMark(c, S, S, !license.ok);
   c.restore();
 
   c.textBaseline = 'alphabetic';
   c.fillStyle = P.ink;
   c.font = '800 128px ' + FONT;
-  c.fillText(ellipsize(c, card.label, S), m, 3080);
+  paintTitle(c, card, m, 3030, S, 210, 150, P.ink, 'left');
 
   c.fillStyle = P.muted;
   c.font = '500 62px ' + FONT;
@@ -1807,7 +2111,7 @@ function savePoster(card) {
   c.fillStyle = P.muted; c.font = '400 46px ' + FONT;
   c.fillText('by Himanshu Sharma', m + pw + 30, 3600);
   c.textAlign = 'right'; c.fillStyle = P.muted; c.font = '500 48px ' + FONT;
-  c.fillText('phymanshu.github.io', m + S, 3600);
+  c.fillText('© ' + YEAR + ' ' + OWNER + ' · ' + SITE, m + S, 3600);
 
   cv.toBlob(function (blob) {
     if (!blob) return;
@@ -1836,7 +2140,7 @@ function abortExport() {
 function makeComposer(list, cell, direct, axes) {
   var n = list.length;
   var cols = n === 1 ? 1 : (n <= 4 ? 2 : 3), rows = Math.ceil(n / cols);
-  var gap = 24, head = 60, foot = 44, top = 70, bottom = 60, cellH = head + cell + foot;
+  var gap = 24, head = 66, foot = 44, top = 70, bottom = 60, cellH = head + cell + foot;
   var W = gap + cols * (cell + gap), H = top + rows * (cellH + gap) + bottom;
   W += W % 2; H += H % 2;
   var cv = document.createElement('canvas');
@@ -1852,18 +2156,21 @@ function makeComposer(list, cell, direct, axes) {
     cx.textBaseline = 'middle';
     cx.textAlign = 'left'; cx.fillStyle = '#16222E'; cx.font = '800 28px ' + FONT;
     cx.fillText('Digitwalker', gap, top / 2 + 4);
-    var tw = cx.measureText('Digitwalker').width;
-    cx.fillStyle = '#506070'; cx.font = '400 18px ' + FONT;
-    cx.fillText('by Himanshu Sharma', gap + tw + 12, top / 2 + 6);
     cx.textAlign = 'right'; cx.fillStyle = '#506070'; cx.font = '500 18px ' + FONT;
-    cx.fillText('phymanshu.github.io', W - gap, top / 2 + 4);
+    cx.fillText(W < 560 ? '© ' + OWNER : '© ' + YEAR + ' ' + OWNER + ' · ' + SITE, W - gap, top / 2 + 4);
     var dist = [], plen = [];
     list.forEach(function (c, i) {
       var x = gap + (i % cols) * (cell + gap), y = top + Math.floor(i / cols) * (cellH + gap);
       cx.fillStyle = look.bg; rr(cx, x, y, cell, cellH, 22); cx.fill();
       cx.textAlign = 'left'; cx.fillStyle = P.ink; cx.font = '800 32px ' + FONT;
       cx.textBaseline = 'middle';
-      cx.fillText(ellipsize(cx, c.label, cell - 28), x + 14, y + head / 2 + 2);
+      var Nn = c.digits.length, shown = Math.min(Math.floor(prog), Nn);
+      paintTitle(cx, c, x + 14, y + head / 2 + 1, cell * 0.6, head - 10, 42, P.ink, 'left');
+      cx.textAlign = 'right'; cx.textBaseline = 'middle'; cx.fillStyle = P.ink; cx.font = '700 19px ' + FONT;
+      cx.fillText('digit ' + Math.max(0, shown) + ' / ' + Nn, x + cell - 14, y + head / 2 - 9);
+      cx.fillStyle = P.muted; cx.font = '500 16px ' + FONT;
+      cx.fillText(turnLabel(), x + cell - 14, y + head / 2 + 11);
+      cx.textAlign = 'left';
       if (direct) {
         var N = c.digits.length;
         cx.save();
@@ -1877,11 +2184,12 @@ function makeComposer(list, cell, direct, axes) {
         cx.drawImage(c.canvas, x, y + head, cell, cell);
         dist[i] = c.tipDist; plen[i] = c.tipPath;
       }
+      cx.save(); cx.translate(x, y + head); cx.beginPath(); cx.rect(0, 0, cell, cell); cx.clip(); drawMark(cx, cell, cell, !license.ok); cx.restore();
       cx.textAlign = 'left'; cx.textBaseline = 'middle';
       cx.fillStyle = P.muted; cx.font = '500 17px ' + FONT;
       cx.fillText('distance ' + fmt(dist[i]) + ' u   ·   path ' + fmt(plen[i]) + ' u', x + 14, y + head + cell + foot / 2);
     });
-    var msg = '1 u = the step for digit 1';
+    var msg = n === 1 ? ruleLive(list[0], prog) : ruleStatic();
     if (numarathon && n > 1 && prog >= maxN) {
       var lead = 0;
       dist.forEach(function (d, i) { if (d > dist[lead]) lead = i; });
@@ -1892,6 +2200,104 @@ function makeComposer(list, cell, direct, axes) {
   }
   return { cv: cv, cx: cx, W: W, H: H, maxN: maxN, composite: composite };
 }
+
+/* ================= tall "studio" layout (1080 x 1920 at k = 1) ================= */
+function fitFont(c, text, weight, size, maxW) {                  // set a font, shrinking it until the text fits the width
+  for (; size > 18; size -= 2) { c.font = weight + ' ' + size + 'px ' + FONT; if (c.measureText(text).width <= maxW) return; }
+  c.font = weight + ' 18px ' + FONT;
+}
+function wrapLines(c, text, maxW) {
+  var words = text.split(' '), lines = [], cur = '';
+  words.forEach(function (w) {
+    var t = cur ? cur + ' ' + w : w;
+    if (cur && c.measureText(t).width > maxW) { lines.push(cur); cur = w; } else cur = t;
+  });
+  if (cur) lines.push(cur);
+  return lines;
+}
+function makeStudioComposer(list, axes, k, readback) {
+  var n = list.length, W0 = 1080, H0 = 1920;
+  var cv = document.createElement('canvas');
+  cv.width = Math.round(W0 * k); cv.height = Math.round(H0 * k);
+  var cx = cv.getContext('2d', readback ? { willReadFrequently: true } : undefined);
+  var maxN = list.reduce(function (m, c) { return Math.max(m, c.digits.length); }, 0);
+  var tiles = [], i;
+  if (n === 1) tiles.push({ x: 80, y: 340, cell: 920, head: 0 });
+  else if (n === 2) for (i = 0; i < 2; i++) tiles.push({ x: 220, y: 130 + i * 770, cell: 640, head: 100 });
+  else for (i = 0; i < n; i++) tiles.push({ x: 50 + (i % 2) * 520, y: 120 + Math.floor(i / 2) * 548, cell: 440, head: 84 });
+  var fits = list.map(function (c, j) { return fit(c, tiles[j].cell); });
+
+  function composite(p) {
+    var prog = p == null ? progress : p, look = lookOpts(), P = inkFor(look.dark);
+    cx.setTransform(k, 0, 0, k, 0, 0);
+    cx.fillStyle = look.bg; cx.fillRect(0, 0, W0, H0);
+    cx.textBaseline = 'middle'; cx.textAlign = 'left';
+    var dist = [], plen = [];
+
+    list.forEach(function (c, j) {
+      var t = tiles[j], N = c.digits.length, full = Math.min(Math.max(0, Math.floor(prog)), N);
+      if (n === 1) {
+        paintTitle(cx, c, W0 / 2, 175, 920, 200, 130, P.ink, 'center');
+        cx.textAlign = 'center'; cx.fillStyle = P.muted; cx.font = '500 34px ' + FONT;
+        cx.fillText('numbers go for a walk', W0 / 2, 300);
+      } else {
+        paintTitle(cx, c, t.x, t.y + t.head / 2, t.cell * (n === 2 ? 0.55 : 0.46), t.head - 14, 60, P.ink, 'left');
+        cx.textAlign = 'right'; cx.fillStyle = P.ink; cx.font = '800 ' + (n === 2 ? 36 : 24) + 'px ' + FONT;
+        cx.fillText('digit ' + full + ' / ' + N, t.x + t.cell, t.y + t.head / 2 - (n === 2 ? 17 : 13));
+        cx.fillStyle = P.muted; cx.font = '600 ' + (n === 2 ? 28 : 19) + 'px ' + FONT;
+        cx.fillText(turnLabel(), t.x + t.cell, t.y + t.head / 2 + (n === 2 ? 19 : 15));
+      }
+      cx.save();
+      cx.translate(t.x, t.y + t.head);
+      rr(cx, 0, 0, t.cell, t.cell, 28); cx.clip();
+      var res = paint(cx, t.cell, c, fits[j], prog, Object.assign({}, look, { lwScale: t.cell / (c.size || 300), tip: true, axes: axes, phase: prog * 0.35, slot: 'vlayer' }));
+      drawMark(cx, t.cell, t.cell, !license.ok);
+      cx.restore();
+      dist[j] = Math.hypot(res.wx, res.wy);
+      plen[j] = c.pre[full] + (full < N ? (Math.min(prog, N) - full) * (c.digits.charCodeAt(full) - 48) : 0);
+    });
+
+    cx.textBaseline = 'middle';
+    if (n === 1) {
+      var c0 = list[0], N0 = c0.digits.length, f0 = Math.min(Math.max(0, Math.floor(prog)), N0), t0 = tiles[0], yb = t0.y + t0.cell;
+      cx.textAlign = 'left'; cx.fillStyle = P.ink; cx.font = '800 58px ' + FONT;
+      cx.fillText('digit ' + f0 + ' / ' + N0, t0.x, yb + 62);
+      cx.textAlign = 'right'; cx.font = '700 50px ' + FONT;
+      cx.fillText(turnLabel(), t0.x + t0.cell, yb + 62);
+      // progress bar, coloured like the line
+      var bw = t0.cell, by = yb + 118;
+      cx.fillStyle = look.dark ? 'rgba(255,255,255,0.14)' : 'rgba(22,34,46,0.12)'; rr(cx, t0.x, by, bw, 18, 9); cx.fill();
+      var fr = Math.min(1, Math.max(0, prog / N0));
+      if (fr > 0) {
+        var g = cx.createLinearGradient(t0.x, 0, t0.x + bw, 0);
+        for (var q = 0; q <= 8; q++) g.addColorStop(q / 8, cmapColor(walkCmap(), q / 8));
+        cx.save(); rr(cx, t0.x, by, bw * fr, 18, 9); cx.clip(); cx.fillStyle = g; cx.fillRect(t0.x, by, bw, 18); cx.restore();
+      }
+      var rp = ruleParts(c0, prog, dist[0], plen[0]);
+      cx.textAlign = 'left'; cx.fillStyle = P.ink;
+      fitFont(cx, rp[0], 800, 50, bw); cx.fillText(rp[0], t0.x, by + 86);
+      fitFont(cx, rp[1], 600, 40, bw); cx.fillText(rp[1], t0.x, by + 146);
+      if (prog < N0) {                                           // (the finished screen already says it above)
+        cx.fillStyle = P.muted; cx.font = '500 34px ' + FONT;
+        cx.fillText('distance ' + fmt(dist[0]) + ' u   ·   path ' + fmt(plen[0]) + ' u', t0.x, by + 215);
+      }
+      cx.textAlign = 'center'; cx.font = '500 32px ' + FONT;
+      cx.fillText('Digitwalker  ·  ' + SITE, W0 / 2, by + 330);
+      cx.font = '500 28px ' + FONT; cx.fillText('© ' + YEAR + ' ' + OWNER + '. All rights reserved.', W0 / 2, by + 374);
+    } else {
+      var last = tiles[n - 1], yEnd = last.y + last.head + last.cell + 52, msg = ruleStatic();
+      if (numarathon && prog >= maxN) {
+        var lead = 0; dist.forEach(function (d, j) { if (d > dist[lead]) lead = j; });
+        msg = '👑 ' + list[lead].label + ' travelled farthest (' + fmt(dist[lead]) + ' u)';
+      }
+      cx.textAlign = 'center'; cx.fillStyle = P.ink; cx.font = '600 36px ' + FONT;
+      wrapLines(cx, msg, 920).slice(0, 2).forEach(function (ln, li) { cx.fillText(ln, W0 / 2, Math.min(yEnd, 1800) + li * 46); });
+      cx.fillStyle = P.muted; cx.font = '500 26px ' + FONT; cx.fillText('© ' + YEAR + ' ' + OWNER + '  ·  ' + SITE, W0 / 2, H0 - 50);
+    }
+  }
+  return { cv: cv, cx: cx, W: cv.width, H: cv.height, maxN: maxN, composite: composite };
+}
+
 
 function download(blob, name) {
   var a = document.createElement('a');
@@ -1904,52 +2310,98 @@ function sizeLabel(bytes) { return bytes < 1048576 ? Math.max(1, Math.round(byte
 
 function exportVideo() {
   if (exp || !cards.length) return;
+  if (!license.ok) { openPaywall(true); return; }               // MP4 is for supporters
   if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) {
     setStatus('This browser cannot record video from a canvas. Try a recent Chrome, Edge, Firefox or Safari, or save a GIF instead.', 7000);
     return;
   }
-  var mime = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4']
-    .filter(function (m) { return MediaRecorder.isTypeSupported(m); })[0];
-  if (!mime) { setStatus('No supported video format found in this browser. Try saving a GIF instead.', 7000); return; }
-
   var n = cards.length;
   var cell = n === 1 ? 720 : (n <= 4 ? 520 : 400);
-  var comp = makeComposer(cards, cell, false);
+  var studio = layoutMode() === 'studio';
+  var comp = studio ? makeStudioComposer(cards, axesToggle.checked, 1, false) : makeComposer(cards, cell, false);
   var maxN = comp.maxN, composite = comp.composite;
 
-  var chunks = [];
-  var stream = comp.cv.captureStream(30), audio = Snd.recordStream();
-  if (audio) audio.getAudioTracks().forEach(function (t) { stream.addTrack(t); });
-  var rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 5000000 });
-  var state = { recorder: rec, raf: 0, aborted: false, audio: !!audio };
-  exp = state;
-  rec.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
-  rec.onstop = function () {
+  var chunks = [], state = { recorder: null, raf: 0, aborted: false, audio: false, timer: 0, mime: '' };
+
+  /* every format this browser can record, best first; with a soundtrack the audio codec has to be named too, or some browsers refuse */
+  function formats(withAudio) {
+    var list = withAudio
+      ? ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
+      : ['video/mp4;codecs=avc1.42E01E', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];   // MP4 first: it plays everywhere
+    return list.filter(function (m) { return MediaRecorder.isTypeSupported(m); });
+  }
+  function cleanup() {                                   // always leave the page usable, whatever happened
+    clearTimeout(state.timer);
     Snd.stopRecord();
     speedOverride = 0;
     videoBtn.disabled = false;
     if (exp === state) exp = null;
-    if (state.aborted) { setStatus('Recording cancelled.'); return; }
-    var blob = new Blob(chunks, { type: mime.split(';')[0] });
-    download(blob, 'digitwalker-' + slug(cards.map(function (c) { return c.label; }).join('_vs_')) + (mime.indexOf('mp4') >= 0 ? '.mp4' : '.webm'));
-    setStatus('Animation saved (' + (mime.indexOf('mp4') >= 0 ? 'MP4' : 'WebM') + (state.audio ? ', with sound' : '') + ').', 6000);
-  };
+  }
+  function fail(err) {                                   // the recording could not be made: say why, restore the page
+    console.error(err);
+    state.aborted = true; state.failed = true;
+    cancelAnimationFrame(state.raf);
+    try { if (state.recorder && state.recorder.state !== 'inactive') state.recorder.stop(); } catch (e) { /* already stopped */ }
+    cleanup();
+    finish();
+    setStatus('Could not record the video (' + (err && err.message ? err.message : err) + '). Try saving a GIF instead.', 10000);
+  }
+  /* creates and starts a recorder; if the browser refuses one format it tries the next */
+  function begin(withAudio) {
+    var stream = comp.cv.captureStream(30), audio = withAudio ? Snd.recordStream() : null, lastErr = null;
+    if (audio) audio.getAudioTracks().forEach(function (t) { stream.addTrack(t); });
+    var mimes = formats(!!audio);
+    for (var i = 0; i < mimes.length; i++) {
+      try {
+        var mime = mimes[i], rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: studio ? 8000000 : 5000000 });
+        chunks.length = 0;
+        rec.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+        rec.onerror = function (e) { fail(e && e.error ? e.error : new Error('the recorder reported an error')); };
+        rec.onstop = function () {
+          var aborted = state.aborted, withSound = state.audio, mp4 = mime.indexOf('mp4') >= 0;
+          cleanup();
+          if (aborted) { if (!state.failed) setStatus('Recording cancelled.'); return; }
+          if (!chunks.length) { setStatus('The browser produced an empty video. Try saving a GIF instead.', 9000); return; }
+          download(new Blob(chunks, { type: mime.split(';')[0] }),
+                   'digitwalker-' + slug(cards.map(function (c) { return c.label; }).join('_vs_')) + (mp4 ? '.mp4' : '.webm'));
+          setStatus('Animation saved (' + (mp4 ? 'MP4' : 'WebM, because this browser cannot record MP4') + (withSound ? ', with sound' : '') + ').', mp4 ? 6000 : 9000);
+        };
+        rec.start(250);                                  // hand over data every quarter second (some browsers only deliver at the very end otherwise)
+        state.recorder = rec; state.audio = !!audio; state.mime = mime;
+        return;
+      } catch (err) { lastErr = err; }
+    }
+    if (audio) Snd.stopRecord();
+    throw lastErr || new Error('no supported video format');
+  }
 
+  exp = state;
   videoBtn.disabled = true;
   speedOverride = Math.max(parseFloat(speedRange.value), maxN / 12);   // keep clips to roughly 12 s or less
   startAnimation(true);
   composite();
-  rec.start();
+  try { begin(true); }                                   // with the soundtrack...
+  catch (e1) {
+    console.warn('video with sound failed, retrying without sound:', e1);
+    try { begin(false); } catch (e2) { fail(e2); return; }   // ...or silent if the browser will not combine them
+  }
+
+  /* safety net: if the recording has not ended long after it should have, stop it and say so instead of hanging */
+  state.timer = setTimeout(function () {
+    if (exp !== state) return;
+    try { state.recorder.stop(); } catch (e) { /* already stopped */ }
+    state.timer = setTimeout(function () { if (exp === state) fail(new Error('the recording did not finish')); }, 4000);
+  }, (maxN / speedOverride) * 1000 + 20000);
 
   var doneAt = 0;
   (function tick(now) {
-    if (state.aborted) return;
+    if (state.aborted || exp !== state) return;
     composite();
     if (progress >= maxN) {
       if (!doneAt) doneAt = now;
-      if (now - doneAt > 1600) { rec.stop(); return; }      // hold the final frame briefly
+      if (now - doneAt > 1600) { try { state.recorder.stop(); } catch (e) { fail(e); } return; }      // hold the final frame briefly
     }
-    setStatus('Recording… ' + Math.min(100, Math.round(progress / maxN * 100)) + '%', 0);
+    setStatus('Recording… ' + Math.min(100, Math.round(progress / maxN * 100)) + '%  (keep this tab visible)', 0);
     state.raf = requestAnimationFrame(tick);
   })(performance.now());
 }
@@ -2125,8 +2577,8 @@ GifEncoder.prototype.finish = function () { this.push(new Uint8Array([0x3B])); r
    so the result is smooth even on a slow machine. */
 async function exportGif() {
   if (exp || !cards.length) return;
-  var list = cards.slice(), n = list.length, hi = gifQual.value === 'hi';
-  var cell = hi ? (n === 1 ? 800 : (n <= 4 ? 600 : 440)) : (n === 1 ? 600 : (n <= 4 ? 440 : 340));
+  var list = cards.slice(), n = list.length, hi = gifQual.value === 'hi' && license.ok;
+  var cell = !license.ok ? (n === 1 ? 360 : (n <= 4 ? 280 : 220)) : hi ? (n === 1 ? 800 : (n <= 4 ? 600 : 440)) : (n === 1 ? 600 : (n <= 4 ? 440 : 340));   // free GIFs are smaller
   var axes = axesToggle.checked;
   var state = { recorder: null, raf: 0, aborted: false };
   exp = state;
@@ -2136,7 +2588,7 @@ async function exportGif() {
     setStatus('Preparing GIF…', 0);
     if (document.fonts && document.fonts.ready) await document.fonts.ready;
     await tick();
-    var comp = makeComposer(list, cell, true, axes);
+    var comp = layoutMode() === 'studio' ? makeStudioComposer(list, axes, !license.ok ? 1 / 3 : (hi ? 2 / 3 : 0.5), true) : makeComposer(list, cell, true, axes);
     var W = comp.W, H = comp.H, cx = comp.cx, maxN = comp.maxN;
 
     // one palette, tuned on the finished picture (contains every colour the animation will use)
@@ -2145,7 +2597,7 @@ async function exportGif() {
     var quant = makeQuantizer(pal);
     var enc = new GifEncoder(W, H, pal.bytes, 255);          // index 255 = "unchanged" (transparent)
 
-    var FPS = 20, DELAY = 5;                                  // 5/100 s per frame
+    var FPS = license.ok ? 20 : 12, DELAY = license.ok ? 5 : 8;   // 5/100 s per frame (free GIFs: fewer, slower frames)
     var rate = Math.max(parseFloat(speedRange.value), maxN / 10);   // digits per second, at most ~10 s of drawing
     var frames = Math.max(2, Math.ceil(maxN / rate * FPS));
     var idx = new Uint8Array(W * H), prevIdx = null, prev32 = null;
@@ -2176,12 +2628,12 @@ async function exportGif() {
 /* Still image of all panels on the finished walk (same layout as the GIF): a good cover/preview image. */
 async function exportPng() {
   if (exp || !cards.length) return;
-  var list = cards.slice(), n = list.length, hi = gifQual.value === 'hi';
+  var list = cards.slice(), n = list.length, hi = gifQual.value === 'hi' && license.ok;
   var cell = hi ? (n === 1 ? 800 : (n <= 4 ? 600 : 440)) : (n === 1 ? 600 : (n <= 4 ? 440 : 340));
   videoBtn.disabled = true;
   try {
     if (document.fonts && document.fonts.ready) await document.fonts.ready;
-    var comp = makeComposer(list, cell, true, axesToggle.checked);
+    var comp = layoutMode() === 'studio' ? makeStudioComposer(list, axesToggle.checked, 1, false) : makeComposer(list, cell, true, axesToggle.checked);
     comp.composite(1e9);                                     // the finished picture
     var blob = await new Promise(function (res) { comp.cv.toBlob(res, 'image/png'); });
     if (!blob) throw new Error('the browser could not create the image');
@@ -3161,16 +3613,79 @@ marathonBtn.addEventListener('click', function () {
 });
 videoBtn.addEventListener('click', function () {
   stopSweep();
+  if (fmtSel.value === 'video' && !license.ok) { openPaywall(true); return; }
   track('export-' + fmtSel.value);
   if (fmtSel.value === 'gif') exportGif(); else if (fmtSel.value === 'png') exportPng(); else exportVideo();
 });
 function syncFormat() {
   var f = fmtSel.value;
-  videoBtn.textContent = f === 'gif' ? 'Save GIF' : (f === 'png' ? 'Save image' : 'Save video');
-  gifQualRow.hidden = f === 'video';
+  videoBtn.textContent = f === 'gif' ? 'Save GIF' : (f === 'png' ? 'Save image' : (license.ok ? 'Save video' : 'Save video 🔒'));
+  gifQualRow.hidden = f === 'video' || (layoutMode() === 'studio' && f === 'png');
 }
+/* plan badge, locked options, dialog */
+var planBadge = $('planBadge'), planBtn = $('planBtn'), planHint = $('planHint');
+var paywall = $('paywall'), pwKey = $('pwKey'), pwMsg = $('pwMsg'), pwSubscribe = $('pwSubscribe'), pendingVideo = false;
+function syncPlanUi() {
+  planBadge.textContent = license.ok ? 'Supporter ✓' + (license.exp ? ' · until ' + new Date(license.exp * 1000).toLocaleDateString() : '') : (license.why || 'Free plan');
+  planBadge.classList.toggle('is-pro', license.ok);
+  planBtn.textContent = license.ok ? 'Manage' : 'Unlock MP4';
+  planHint.textContent = license.ok ? 'Thank you for supporting Digitwalker. Exports are full quality.'
+    : 'Free: GIF in lower quality with a watermark. Supporters get MP4 video, plus high-quality GIFs and images.';
+  fmtSel.querySelector('option[value="video"]').textContent = license.ok ? 'Video (MP4)' : 'Video (MP4) 🔒';
+  var hasStudio = !!layoutSel.querySelector('option[value="studio"]');
+  if (license.ok && !hasStudio) { layoutSel.insertBefore(new Option('Studio', 'studio'), layoutSel.firstChild); layoutSel.value = 'studio'; }
+  if (!license.ok && hasStudio) { layoutSel.removeChild(layoutSel.querySelector('option[value="studio"]')); layoutSel.value = 'tiles'; }
+  layoutSel.parentElement.hidden = !license.ok;                  // free visitors have no choice to make, so no menu
+  layoutSel.closest('.pair').classList.toggle('one', !license.ok);
+  var hiOpt = gifQual.querySelector('option[value="hi"]');
+  hiOpt.disabled = !license.ok; hiOpt.textContent = license.ok ? 'High (larger file)' : 'High 🔒';
+  if (!license.ok && gifQual.value === 'hi') gifQual.value = 'std';
+  syncFormat();
+}
+function applyLicense(payload) {
+  license = { ok: true, sub: payload.sub || '', exp: payload.exp || 0, why: '' };
+  syncPlanUi();
+}
+function openPaywall(forVideo) {
+  pendingVideo = !!forVideo;
+  $('pwFree').hidden = license.ok; $('pwPro').hidden = !license.ok;
+  $('pwTitle').textContent = license.ok ? 'You are a supporter ✓' : 'MP4 export is for supporters';
+  if (license.ok) $('pwProText').textContent = 'Full-quality exports are unlocked' + (license.exp ? ' until ' + new Date(license.exp * 1000).toLocaleDateString() : '') + (license.sub ? ' for ' + license.sub : '') + '.';
+  pwSubscribe.hidden = !SUBSCRIBE_URL; $('pwSoon').hidden = !!SUBSCRIBE_URL;
+  if (SUBSCRIBE_URL) pwSubscribe.href = SUBSCRIBE_URL;
+  pwMsg.textContent = ''; pwMsg.className = 'pw-msg';
+  if (paywall.showModal) { if (!paywall.open) paywall.showModal(); } else paywall.setAttribute('open', '');
+  if (!license.ok) pwKey.focus();
+}
+function closePaywall() { if (paywall.close) paywall.close(); else paywall.removeAttribute('open'); }
+$('pwClose').addEventListener('click', closePaywall);
+planBtn.addEventListener('click', function () { openPaywall(false); });
+paywall.addEventListener('click', function (ev) { if (ev.target === paywall) closePaywall(); });      // click on the dimmed backdrop
+$('pwUnlock').addEventListener('click', function () {
+  pwMsg.className = 'pw-msg'; pwMsg.textContent = 'Checking…';
+  var raw = pwKey.value;
+  verifyLicense(raw).then(function (payload) {
+    storeSet(raw.replace(/["'\s]/g, ''));
+    applyLicense(payload);
+    pwMsg.className = 'pw-msg good'; pwMsg.textContent = 'Unlocked ✓';
+    var go = pendingVideo; pendingVideo = false;
+    fmtSel.value = 'video'; syncFormat();
+    setTimeout(function () { closePaywall(); if (go) exportVideo(); }, 500);
+  }).catch(function (e) { pwMsg.className = 'pw-msg bad'; pwMsg.textContent = e.message; });
+});
+$('pwRemove').addEventListener('click', function () {
+  storeSet(''); license = { ok: false, sub: '', exp: 0, why: '' }; fmtSel.value = 'gif'; syncPlanUi(); closePaywall();
+});
 fmtSel.addEventListener('change', syncFormat);
-syncFormat();
+layoutSel.addEventListener('change', syncFormat);
+syncPlanUi();
+
+(function () {                                                       // a key saved in this browser unlocks on every visit
+  var saved = storeGet();
+  if (!saved) return;
+  verifyLicense(saved).then(function (payload) { applyLicense(payload); fmtSel.value = 'video'; syncFormat(); })
+    .catch(function (e) { license.why = /expired/.test(e.message) ? 'Licence expired' : ''; syncPlanUi(); });
+})();
 
 speedRange.addEventListener('input', function () { speedVal.textContent = speedRange.value + '/s'; });
 speedRange.addEventListener('change', syncUrl);
