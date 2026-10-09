@@ -580,6 +580,8 @@ dialog#paywall::backdrop{background:rgba(8,16,28,.55);backdrop-filter:blur(3px)}
                 <option value="25">25</option>
                 <option value="50">50</option>
                 <option value="100" selected>100</option>
+                <option value="150">150</option>
+                <option value="200">200</option>
                 <option value="250">250</option>
                 <option value="500">500</option>
                 <option value="1000">1000</option>
@@ -830,6 +832,8 @@ dialog#paywall::backdrop{background:rgba(8,16,28,.55);backdrop-filter:blur(3px)}
 <footer>
   © 2026 Himanshu Sharma. All rights reserved. · Part of Himanshu Sharma's <a href="https://phymanshu.github.io/#playground">science playground</a> · <a href="#gallery">🎨 Visit the Rational Art Gallery</a><span id="visitNote" hidden> · Visits are counted anonymously, without cookies.</span>
 </footer>
+
+<script src="digitwalker-config.js"></script>
 
 <dialog id="paywall" aria-labelledby="pwTitle">
   <h2 id="pwTitle" class="pw-title">MP4 export is for supporters</h2>
@@ -1089,8 +1093,10 @@ function digitWall(d, intLen) {                                  // "3.14159..."
 
 /* ================= copyright, licence and watermark ================= */
 var OWNER = 'Himanshu Sharma', YEAR = 2026, SITE = 'phymanshu.github.io';
-var SUBSCRIBE_URL = 'https://buymeacoffee.com/shymanshu';          // <- your checkout page (Stripe Payment Link, Ko-fi, Gumroad, ...). While empty, the dialog says "opening soon".
-var LICENSE_PUBKEY = {"kty":"EC","crv":"P-256","x":"2vNonSksxPZyznCPyWl0xokey664QPWSDe2MFeRovvk","y":"vjyrY4KVNK5z2Fav-4GXNnLYcgD6ydlA9FiDG6cAdvE"}; // <- placeholder. Run digitwalker-license-tool.html (Quick setup): it puts YOUR public key here.
+var CFG = window.DIGITWALKER_CONFIG || {};   // your settings come from digitwalker-config.js (made once by the licence tool), so updating this page never touches them
+if (!window.DIGITWALKER_CONFIG) console.warn('digitwalker-config.js was not found next to this page: MP4 stays locked until it is uploaded.');
+var SUBSCRIBE_URL = typeof CFG.subscribeUrl === 'string' && /^https:\/\/[^\s'"<>]+$/.test(CFG.subscribeUrl) ? CFG.subscribeUrl : '';   // empty: the dialog says "opening soon"
+var LICENSE_PUBKEY = CFG.pubkey || {"kty": "EC", "crv": "P-256", "x": "hivSkE411d2JsC0AuMkUau9STheeDLdPJXgyvQNQcJ8", "y": "34BLj8m-EM3NIcrtUwJ0K3Eoj_vlRqXpBIlT2eFAUMk"};   // (the placeholder after || can never unlock anything)
 var LICENSE_STORE = 'digitwalker-licence';
 var license = { ok: false, sub: '', exp: 0, why: '' };
 function layoutMode() { return license.ok && layoutSel.value === 'studio' ? 'studio' : 'tiles'; }   // without a licence it is always the plain tiles, whatever the page is told
@@ -1329,6 +1335,33 @@ function ruleParts(card, prog, dist, plen) {                    // [headline, de
   return ['Digit ' + (full + 1) + ' is ' + d, 'walk ' + d + (d === 1 ? ' unit' : ' units') + ', then ' + turnLabel()];
 }
 function ruleLive(card, prog) { var r = ruleParts(card, prog); return r[1] ? r[0] + ': ' + r[1] : r[0] + '.'; }
+
+/* ================= finale: when the last digit is walked, a glow rolls out from the end point and fades ================= */
+var FIN_MS = 1700, finT0 = 0, finalePlayed = false;
+function finaleFrac() {                                          // 0 = no finale running, otherwise how far (0..1) it has got
+  if (!finT0) return 0;
+  var f = (performance.now() - finT0) / FIN_MS;
+  return f > 0 && f < 1 ? f : 0;
+}
+function drawFinale(c, w, h, x, y, color, fin, dark, strength) {
+  if (!(fin > 0 && fin < 1)) return;
+  var st = strength || 1, rgb = rgbArr(color), hi = dark ? mixC(rgb, [255, 255, 255], 0.55) : rgb;
+  var R = Math.hypot(Math.max(x, w - x), Math.max(y, h - y)) * 1.08;
+  var e = 1 - Math.pow(1 - fin, 3), r = Math.max(2, e * R), a = Math.pow(1 - fin, 1.3) * st;
+  c.save();
+  c.globalCompositeOperation = dark ? 'lighter' : 'source-over';
+  c.beginPath(); c.rect(0, 0, w, h); c.clip();
+  var fl = Math.max(0, 1 - fin / 0.35);                           // 1. a flash that washes the whole picture at first
+  if (fl > 0) { c.fillStyle = rgbaS(rgb, (0.2 * fl * st).toFixed(3)); c.fillRect(0, 0, w, h); }
+  var g = c.createRadialGradient(x, y, 0, x, y, r);               // 2. the wave: a bright ring with a soft glow behind it
+  g.addColorStop(0, rgbaS(rgb, 0)); g.addColorStop(0.5, rgbaS(rgb, (0.1 * a).toFixed(3)));
+  g.addColorStop(0.86, rgbaS(hi, (0.5 * a).toFixed(3))); g.addColorStop(1, rgbaS(rgb, 0));
+  c.fillStyle = g; c.fillRect(0, 0, w, h);
+  var br = Math.min(w, h) * (0.12 + 0.3 * e), g2 = c.createRadialGradient(x, y, 0, x, y, br);   // 3. the end point blooms
+  g2.addColorStop(0, rgbaS(hi, (0.65 * a).toFixed(3))); g2.addColorStop(1, rgbaS(rgb, 0));
+  c.fillStyle = g2; c.fillRect(0, 0, w, h);
+  c.restore();
+}
 
 /* ================= look: backgrounds, glow and moving-point styles ================= */
 var WALK_BGS = [['white', '#ffffff'], ['cream', '#f6f0e4'], ['blush', '#fff1f6'], ['mint', '#eaf8f1'], ['night', '#0e1520'], ['navy', '#0b1e3a'],
@@ -1816,6 +1849,7 @@ function paint(ctx, size, card, f, prog, o) {
     drawTip(ctx, style, ox + wx * sc, oy - wy * sc, card.colors[Math.min(full, n - 1)], lw, ls * tipScale(size, ls), o.phase || 0,
             dark, card, full, ox, oy, sc);
   }
+  if (o.fin > 0 && o.fin < 1 && prog >= n) drawFinale(ctx, size, size, ox + xs[n] * sc, oy - ys[n] * sc, card.colors[n - 1], o.fin, dark, 1);
   return { wx: wx, wy: wy };
 }
 
@@ -1823,7 +1857,7 @@ function setText(el, s) { if (el.textContent !== s) el.textContent = s; }
 
 function render(card, prog) {
   var n = card.digits.length;
-  var res = paint(card.ctx, card.size, card, card.f, prog, Object.assign(lookOpts(), { lwScale: 1, tip: true, axes: axesToggle.checked, live: true, phase: performance.now() / 1000 * 2.4 }));
+  var res = paint(card.ctx, card.size, card, card.f, prog, Object.assign(lookOpts(), { lwScale: 1, tip: true, axes: axesToggle.checked, live: true, phase: performance.now() / 1000 * 2.4, fin: finaleFrac() }));
   var full = Math.min(Math.floor(prog), n), frac = Math.min(prog, n) - full;
   card.tipDist = Math.hypot(res.wx, res.wy);
   card.tipPath = card.pre[full] + (full < n ? frac * (card.digits.charCodeAt(full) - 48) : 0);
@@ -1918,7 +1952,7 @@ function updateRace(finished) {
 }
 
 /* ================= animation loop ================= */
-function stopLoop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
+function stopLoop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } finT0 = 0; }
 
 function frame(now) {
   var dt = Math.min(100, now - lastT); lastT = now;
@@ -1929,14 +1963,17 @@ function frame(now) {
     render(c, progress);
     if (progress < c.digits.length) running = true;
   });
+  var firstDone = !running && !finT0 && !finalePlayed;
+  if (firstDone) { finT0 = performance.now(); finalePlayed = true; }        // the last digit is in: start the finale
   updateRace(!running);
   if (!exp || exp.audio) {                             // sound is live in the view and in video recordings (a GIF has none)
     try {
       Snd.tick(before, Math.min(progress, maxDigits()), cards, rate);
-      if (!running) Snd.finale();
+      if (firstDone) Snd.finale();
     } catch (err) { console.error('sound error (ignored):', err); }
   }
-  raf = running ? requestAnimationFrame(frame) : 0;   // done -> freeze, loop stops
+  if (running || (finT0 && performance.now() - finT0 < FIN_MS)) raf = requestAnimationFrame(frame);
+  else { raf = 0; if (finT0) { finT0 = 0; renderAll(); } }                  // glow over: draw the clean final picture, loop stops
 }
 
 function startAnimation(force) {
@@ -1944,6 +1981,7 @@ function startAnimation(force) {
   stopLoop();
   if (reduceMotion && !force) { finish(); return; }
   progress = 0;
+  finT0 = 0; finalePlayed = false;
   Snd.reset();
   cards.forEach(function (c) { c.shown = -1; });
   renderAll();
@@ -1954,6 +1992,7 @@ function startAnimation(force) {
 function finish() {
   stopSweep();
   stopLoop();
+  finalePlayed = true;
   progress = 1e9;
   cards.forEach(function (c) { c.shown = -1; });
   renderAll();
@@ -2149,15 +2188,15 @@ function makeComposer(list, cell, direct, axes) {
   var maxN = list.reduce(function (m, c) { return Math.max(m, c.digits.length); }, 0);
   var fits = direct ? list.map(function (c) { return fit(c, cell); }) : null;
 
-  function composite(p) {
-    var prog = p == null ? progress : p;
+  function composite(p, finArg) {
+    var prog = p == null ? progress : p, fin = finArg == null ? finaleFrac() : finArg;
     var look = lookOpts(), P = inkFor(look.dark);
     cx.fillStyle = '#ECEFF1'; cx.fillRect(0, 0, W, H);
     cx.textBaseline = 'middle';
     cx.textAlign = 'left'; cx.fillStyle = '#16222E'; cx.font = '800 28px ' + FONT;
     cx.fillText('Digitwalker', gap, top / 2 + 4);
     cx.textAlign = 'right'; cx.fillStyle = '#506070'; cx.font = '500 18px ' + FONT;
-    cx.fillText(W < 560 ? '© ' + OWNER : '© ' + YEAR + ' ' + OWNER + ' · ' + SITE, W - gap, top / 2 + 4);
+    cx.fillText(W < 720 ? '© ' + OWNER : '© ' + YEAR + ' ' + OWNER + ' · ' + SITE, W - gap, top / 2 + 4);
     var dist = [], plen = [];
     list.forEach(function (c, i) {
       var x = gap + (i % cols) * (cell + gap), y = top + Math.floor(i / cols) * (cellH + gap);
@@ -2175,7 +2214,7 @@ function makeComposer(list, cell, direct, axes) {
         var N = c.digits.length;
         cx.save();
         cx.translate(x, y + head);
-        var res = paint(cx, cell, c, fits[i], prog, Object.assign({}, look, { lwScale: cell / (c.size || 300), tip: true, axes: axes, phase: prog * 0.35 }));
+        var res = paint(cx, cell, c, fits[i], prog, Object.assign({}, look, { lwScale: cell / (c.size || 300), tip: true, axes: axes, phase: prog * 0.35, fin: fin }));
         cx.restore();
         var full = Math.min(Math.floor(prog), N), frac = Math.min(prog, N) - full;
         dist[i] = Math.hypot(res.wx, res.wy);
@@ -2227,10 +2266,14 @@ function makeStudioComposer(list, axes, k, readback) {
   else for (i = 0; i < n; i++) tiles.push({ x: 50 + (i % 2) * 520, y: 120 + Math.floor(i / 2) * 548, cell: 440, head: 84 });
   var fits = list.map(function (c, j) { return fit(c, tiles[j].cell); });
 
-  function composite(p) {
-    var prog = p == null ? progress : p, look = lookOpts(), P = inkFor(look.dark);
+  function composite(p, finArg) {
+    var prog = p == null ? progress : p, look = lookOpts(), P = inkFor(look.dark), fin = finArg == null ? finaleFrac() : finArg;
     cx.setTransform(k, 0, 0, k, 0, 0);
     cx.fillStyle = look.bg; cx.fillRect(0, 0, W0, H0);
+    if (fin > 0 && n === 1 && prog >= list[0].digits.length) {       // the glow reaches the whole frame, not just the picture
+      var g0 = list[0], N1 = g0.digits.length, f1 = fits[0], t1 = tiles[0];
+      drawFinale(cx, W0, H0, t1.x + f1.ox + g0.xs[N1] * f1.sc, t1.y + t1.head + f1.oy - g0.ys[N1] * f1.sc, g0.colors[N1 - 1], fin, look.dark, 0.6);
+    }
     cx.textBaseline = 'middle'; cx.textAlign = 'left';
     var dist = [], plen = [];
 
@@ -2250,7 +2293,7 @@ function makeStudioComposer(list, axes, k, readback) {
       cx.save();
       cx.translate(t.x, t.y + t.head);
       rr(cx, 0, 0, t.cell, t.cell, 28); cx.clip();
-      var res = paint(cx, t.cell, c, fits[j], prog, Object.assign({}, look, { lwScale: t.cell / (c.size || 300), tip: true, axes: axes, phase: prog * 0.35, slot: 'vlayer' }));
+      var res = paint(cx, t.cell, c, fits[j], prog, Object.assign({}, look, { lwScale: t.cell / (c.size || 300), tip: true, axes: axes, phase: prog * 0.35, slot: 'vlayer', fin: fin }));
       drawMark(cx, t.cell, t.cell, !license.ok);
       cx.restore();
       dist[j] = Math.hypot(res.wx, res.wy);
@@ -2399,7 +2442,7 @@ function exportVideo() {
     composite();
     if (progress >= maxN) {
       if (!doneAt) doneAt = now;
-      if (now - doneAt > 1600) { try { state.recorder.stop(); } catch (e) { fail(e); } return; }      // hold the final frame briefly
+      if (now - doneAt > FIN_MS + 500) { try { state.recorder.stop(); } catch (e) { fail(e); } return; }      // hold the final frame briefly
     }
     setStatus('Recording… ' + Math.min(100, Math.round(progress / maxN * 100)) + '%  (keep this tab visible)', 0);
     state.raf = requestAnimationFrame(tick);
@@ -2592,7 +2635,7 @@ async function exportGif() {
     var W = comp.W, H = comp.H, cx = comp.cx, maxN = comp.maxN;
 
     // one palette, tuned on the finished picture (contains every colour the animation will use)
-    comp.composite(1e9);
+    comp.composite(1e9, 0.3);                                 // (with the glow, so its colours are in the palette)
     var pal = buildPalette(new Uint32Array(cx.getImageData(0, 0, W, H).data.buffer), 255);
     var quant = makeQuantizer(pal);
     var enc = new GifEncoder(W, H, pal.bytes, 255);          // index 255 = "unchanged" (transparent)
@@ -2602,15 +2645,16 @@ async function exportGif() {
     var frames = Math.max(2, Math.ceil(maxN / rate * FPS));
     var idx = new Uint8Array(W * H), prevIdx = null, prev32 = null;
 
-    for (var k = 0; k <= frames; k++) {
+    var glowFrames = Math.max(6, Math.round(FIN_MS / 1000 * FPS)), total = frames + glowFrames + 1;
+    for (var k = 0; k <= total; k++) {
       if (state.aborted) throw new Error('aborted');
-      comp.composite(Math.min(maxN, k * rate / FPS));
+      comp.composite(Math.min(maxN, k * rate / FPS), k > frames && k <= frames + glowFrames ? (k - frames) / (glowFrames + 1) : 0);
       var d32 = new Uint32Array(cx.getImageData(0, 0, W, H).data.buffer);
       quantizeFrame(d32, prev32, prevIdx, idx, quant);
-      enc.addFrame(idx, prevIdx, k === frames ? 200 : DELAY);   // rest 2 s on the finished walk, then loop
+      enc.addFrame(idx, prevIdx, k === total ? 200 : DELAY);   // rest 2 s on the finished walk, then loop
       var spare = prevIdx; prevIdx = idx; idx = spare || new Uint8Array(W * H);
       prev32 = d32;
-      setStatus('Making GIF… ' + Math.round(k / frames * 100) + '%', 0);
+      setStatus('Making GIF… ' + Math.round(k / total * 100) + '%', 0);
       await tick();
     }
     var blob = new Blob(enc.finish(), { type: 'image/gif' });
@@ -2634,7 +2678,7 @@ async function exportPng() {
   try {
     if (document.fonts && document.fonts.ready) await document.fonts.ready;
     var comp = layoutMode() === 'studio' ? makeStudioComposer(list, axesToggle.checked, 1, false) : makeComposer(list, cell, true, axesToggle.checked);
-    comp.composite(1e9);                                     // the finished picture
+    comp.composite(1e9, 0);                                  // the finished picture
     var blob = await new Promise(function (res) { comp.cv.toBlob(res, 'image/png'); });
     if (!blob) throw new Error('the browser could not create the image');
     download(blob, 'digitwalker-' + slug(list.map(function (c) { return c.label; }).join('_vs_')) + '.png');
